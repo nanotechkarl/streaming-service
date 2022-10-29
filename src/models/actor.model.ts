@@ -1,7 +1,7 @@
 import {Entity, model, property} from '@loopback/repository';
 
 @model()
-export class Movie extends Entity {
+export class Actor extends Entity {
   @property({
     type: 'string',
     id: true,
@@ -13,39 +13,33 @@ export class Movie extends Entity {
     type: 'string',
     required: true,
   })
-  title: string;
+  firstName: string;
 
   @property({
     type: 'string',
     required: true,
   })
-  description: string;
+  lastName: string;
 
   @property({
     type: 'string',
     required: true,
   })
-  imgUrl: string;
+  gender: string;
 
   @property({
     type: 'number',
     required: true,
   })
-  cost: number;
+  age: number;
 
-  @property({
-    type: 'date',
-    required: true,
-  })
-  yearRelease: string;
-
-  constructor(data?: Partial<Movie>) {
+  constructor(data?: Partial<Actor>) {
     super(data);
   }
 }
 
-export interface MovieRelations {
+export interface ActorRelations {
   // describe navigational properties here
 }
 
-export type MovieWithRelations = Movie & MovieRelations;
+export type ActorWithRelations = Actor & ActorRelations;
