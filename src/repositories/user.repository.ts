@@ -28,5 +28,7 @@ export class UserRepository extends DefaultCrudRepository<
       'review',
       getReviewRepository,
     );
+
+    this.registerInclusionResolver('review', this.review.inclusionResolver);
   }
 }

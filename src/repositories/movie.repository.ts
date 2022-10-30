@@ -41,5 +41,8 @@ export class MovieRepository extends DefaultCrudRepository<
       'reviews',
       reviewRepositoryGetter,
     );
+
+    this.registerInclusionResolver('actors', this.actors.inclusionResolver);
+    this.registerInclusionResolver('reviews', this.reviews.inclusionResolver);
   }
 }

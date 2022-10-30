@@ -52,8 +52,9 @@ export class User extends Entity {
 
   @property({
     type: 'boolean',
+    required: true,
   })
-  approved?: boolean;
+  approved: boolean;
 
   @hasOne(() => Review)
   review?: Review;

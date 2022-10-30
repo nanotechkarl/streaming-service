@@ -21,11 +21,27 @@ export const requestBodySchema = {
       },
     },
   },
-  update: {
+  updateRole: {
     content: {
       'application/json': {
         schema: getModelSchemaRef(User, {
-          exclude: ['id', 'password'],
+          exclude: [
+            'id',
+            'password',
+            'approved',
+            'firstName',
+            'lastName',
+            'email',
+          ],
+        }),
+      },
+    },
+  },
+  updateApproval: {
+    content: {
+      'application/json': {
+        schema: getModelSchemaRef(User, {
+          exclude: ['id', 'password', 'role', 'firstName', 'lastName', 'email'],
         }),
       },
     },
@@ -38,10 +54,22 @@ export const responseSchema = {
     content: {
       'application/json': {
         schema: {
-          type: 'array',
-          items: getModelSchemaRef(User, {
-            includeRelations: true,
-          }),
+          type: 'object',
+          properties: {
+            success: {
+              type: 'boolean',
+            },
+            data: {
+              type: Array,
+              items: getModelSchemaRef(User, {
+                includeRelations: false,
+                optional: ['review'],
+              }),
+            },
+            message: {
+              type: 'string',
+            },
+          },
         },
       },
     },
@@ -50,10 +78,22 @@ export const responseSchema = {
     description: 'User model instance',
     content: {
       'application/json': {
-        schema: getModelSchemaRef(User, {
-          includeRelations: true,
-          exclude: ['password'],
-        }),
+        schema: {
+          type: 'object',
+          properties: {
+            success: {
+              type: 'boolean',
+            },
+            data: getModelSchemaRef(User, {
+              includeRelations: false,
+              optional: ['review'],
+              exclude: ['password'],
+            }),
+            message: {
+              type: 'string',
+            },
+          },
+        },
       },
     },
   },
@@ -68,13 +108,58 @@ export const responseSchema = {
       },
     },
   },
-  update: {
+  updateRole: {
     description: 'Update user details',
     content: {
       'application/json': {
-        schema: getModelSchemaRef(User, {
-          exclude: ['id', 'password'],
-        }),
+        schema: {
+          type: 'object',
+          properties: {
+            success: {
+              type: 'boolean',
+            },
+            data: getModelSchemaRef(User, {
+              exclude: [
+                'id',
+                'password',
+                'approved',
+                'firstName',
+                'lastName',
+                'email',
+              ],
+            }),
+            message: {
+              type: 'string',
+            },
+          },
+        },
+      },
+    },
+  },
+  updateApproval: {
+    content: {
+      'application/json': {
+        schema: {
+          type: 'object',
+          properties: {
+            success: {
+              type: 'boolean',
+            },
+            data: getModelSchemaRef(User, {
+              exclude: [
+                'id',
+                'password',
+                'role',
+                'firstName',
+                'lastName',
+                'email',
+              ],
+            }),
+            message: {
+              type: 'string',
+            },
+          },
+        },
       },
     },
   },
@@ -85,7 +170,20 @@ export const responseSchema = {
         schema: {
           type: 'object',
           properties: {
-            count: {type: 'number'},
+            success: {
+              type: 'boolean',
+            },
+            data: {
+              type: 'object',
+              properties: {
+                id: {
+                  type: 'string',
+                },
+              },
+            },
+            message: {
+              type: 'string',
+            },
           },
         },
       },
@@ -95,9 +193,20 @@ export const responseSchema = {
     description: 'Register',
     content: {
       'application/json': {
-        schema: getModelSchemaRef(User, {
-          exclude: ['id', 'role', 'approved'],
-        }),
+        schema: {
+          type: 'object',
+          properties: {
+            success: {
+              type: 'boolean',
+            },
+            data: getModelSchemaRef(User, {
+              exclude: ['id', 'role', 'approved'],
+            }),
+            message: {
+              type: 'string',
+            },
+          },
+        },
       },
     },
   },
@@ -108,7 +217,18 @@ export const responseSchema = {
         schema: {
           type: 'object',
           properties: {
-            token: {
+            success: {
+              type: 'boolean',
+            },
+            data: {
+              type: 'object',
+              properties: {
+                token: {
+                  type: 'string',
+                },
+              },
+            },
+            message: {
               type: 'string',
             },
           },
