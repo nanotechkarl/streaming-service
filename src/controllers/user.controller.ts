@@ -118,7 +118,7 @@ export class UserController {
   }
   /* #endregion */
 
-  /* #region  - Get all users [ADMIN]*/
+  /* #region  - Get all users with rating [ADMIN]*/
   @get('/users')
   @response(200, responseSchema.getAll)
   async find() {
