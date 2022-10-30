@@ -1,4 +1,4 @@
-import {TokenService} from '@loopback/authentication';
+import {authenticate, TokenService} from '@loopback/authentication';
 import {
   MyUserService,
   TokenServiceBindings,
@@ -21,8 +21,10 @@ import {
   patch,
   post,
   put,
+  Request,
   requestBody,
   response,
+  RestBindings,
 } from '@loopback/rest';
 import {SecurityBindings, securityId, UserProfile} from '@loopback/security';
 import bcrypt from 'bcryptjs';
@@ -30,6 +32,7 @@ import {User} from '../models';
 import {UserRepository} from '../repositories';
 import {requestBodySchema, responseSchema} from './user.types';
 
+@authenticate('jwt')
 export class UserController {
   constructor(
     @inject(TokenServiceBindings.TOKEN_SERVICE)
@@ -38,11 +41,13 @@ export class UserController {
     public userService: MyUserService,
     @inject(SecurityBindings.USER, {optional: true})
     public user: UserProfile,
+    @inject(RestBindings.Http.REQUEST) private request: Request,
     @repository(UserRepository)
     protected userRepository: UserRepository,
   ) {}
 
   /* #region  - Register */
+  @authenticate.skip()
   @post('/users/register')
   @response(200, responseSchema.register)
   async create(
@@ -67,6 +72,7 @@ export class UserController {
   /* #endregion */
 
   /* #region - Login */
+  @authenticate.skip()
   @post('/users/login')
   @response(200, responseSchema.login)
   async login(
@@ -75,6 +81,7 @@ export class UserController {
   ): Promise<{token: string}> {
     const {email, password} = user;
     const existingUser = await this.userRepository.findOne({where: {email}});
+    console.log('existingUser :', existingUser);
     if (!existingUser) throw new Error('User does not exist in the database');
 
     const validPassword = bcrypt.compareSync(password, existingUser?.password);
@@ -84,24 +91,14 @@ export class UserController {
     const userObj: UserProfile = {
       [securityId]: secId ?? '',
       email: existingUser.email,
-      password: existingUser.password,
-      id: existingUser.id,
-      role: existingUser.role,
     };
 
     const token = await this.jwtService.generateToken(userObj);
-    return {token};
+    return {
+      token,
+    };
   }
   /* #endregion */
-
-  @get('/users/count')
-  @response(200, {
-    description: 'User model count',
-    content: {'application/json': {schema: CountSchema}},
-  })
-  async count(@param.where(User) where?: Where<User>): Promise<Count> {
-    return this.userRepository.count(where);
-  }
 
   @get('/users')
   @response(200, {
