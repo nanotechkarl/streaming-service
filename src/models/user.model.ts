@@ -1,10 +1,11 @@
-import {Entity, model, property} from '@loopback/repository';
+import {Entity, hasOne, model, property} from '@loopback/repository';
+import {Review} from './review.model';
 
 @model({
   //REVIEW added settings for custom collection name
   settings: {
     mongodb: {
-      collection: 'users',
+      collection: 'User',
     },
   },
 })
@@ -53,6 +54,9 @@ export class User extends Entity {
     type: 'boolean',
   })
   approved?: boolean;
+
+  @hasOne(() => Review)
+  review?: Review;
 
   constructor(data?: Partial<User>) {
     super(data);

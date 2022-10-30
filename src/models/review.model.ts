@@ -1,4 +1,6 @@
-import {Entity, model, property} from '@loopback/repository';
+import {belongsTo, Entity, model, property} from '@loopback/repository';
+import {Movie} from './movie.model';
+import {User} from './user.model';
 
 @model()
 export class Review extends Entity {
@@ -11,7 +13,6 @@ export class Review extends Entity {
 
   @property({
     type: 'string',
-    required: true,
   })
   message: string;
 
@@ -26,6 +27,12 @@ export class Review extends Entity {
     default: false,
   })
   approved?: boolean;
+
+  @belongsTo(() => Movie)
+  movieId: string;
+
+  @belongsTo(() => User)
+  userId: string;
 
   constructor(data?: Partial<Review>) {
     super(data);

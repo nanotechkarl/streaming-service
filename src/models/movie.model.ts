@@ -1,4 +1,6 @@
-import {Entity, model, property} from '@loopback/repository';
+import {Entity, hasMany, model, property} from '@loopback/repository';
+import {Actor} from './actor.model';
+import {Review} from './review.model';
 
 @model()
 export class Movie extends Entity {
@@ -38,6 +40,12 @@ export class Movie extends Entity {
     required: true,
   })
   yearRelease: string;
+
+  @hasMany(() => Actor, {keyTo: 'movieId'})
+  actors: Actor[];
+
+  @hasMany(() => Review, {keyTo: 'movieId'})
+  reviews: Review[];
 
   constructor(data?: Partial<Movie>) {
     super(data);

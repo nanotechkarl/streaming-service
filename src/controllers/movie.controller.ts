@@ -17,8 +17,9 @@ import {
   requestBody,
   response,
 } from '@loopback/rest';
-import {Movie} from '../models';
+import {Actor, Movie, Review} from '../models';
 import {MovieRepository} from '../repositories';
+const {ObjectId} = require('mongodb');
 
 export class MovieController {
   constructor(
@@ -143,5 +144,26 @@ export class MovieController {
   })
   async deleteById(@param.path.string('id') id: string): Promise<void> {
     await this.movieRepository.deleteById(id);
+  }
+
+  //TODO REMOVE LATER
+  @post('/sample/{id}/actor')
+  async createActor(
+    @param.path.string('id') movieId: typeof Movie.prototype.id,
+    @requestBody() actorData: Actor,
+  ) {
+    return this.movieRepository.actors(movieId).create(actorData);
+  }
+
+  //TODO REMOVE LATER
+  @post('/sample/{movieId}/review')
+  async createReview(
+    @param.path.string('movieId') movieId: typeof Movie.prototype.id,
+    @requestBody() reviewData: Review,
+  ) {
+    reviewData.userId = ObjectId('635d97eee2ddeb65542f12be'); //TODO GET FROM TOKEN
+    return this.movieRepository.reviews(movieId).create(reviewData);
+    // return this.movieRepository.reviews(movieId).find(); //REVIEW GET
+    // return this.movieRepository.reviews(movieId).create(reviewData); //REVIEW POST
   }
 }
