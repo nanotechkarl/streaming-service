@@ -1,3 +1,10 @@
+import {TokenService} from '@loopback/authentication';
+import {
+  MyUserService,
+  TokenServiceBindings,
+  UserServiceBindings,
+} from '@loopback/authentication-jwt';
+import {inject} from '@loopback/core';
 import {
   Count,
   CountSchema,
@@ -17,35 +24,75 @@ import {
   requestBody,
   response,
 } from '@loopback/rest';
+import {SecurityBindings, securityId, UserProfile} from '@loopback/security';
+import bcrypt from 'bcryptjs';
 import {User} from '../models';
 import {UserRepository} from '../repositories';
+import {requestBodySchema, responseSchema} from './user.types';
 
 export class UserController {
   constructor(
+    @inject(TokenServiceBindings.TOKEN_SERVICE)
+    public jwtService: TokenService,
+    @inject(UserServiceBindings.USER_SERVICE)
+    public userService: MyUserService,
+    @inject(SecurityBindings.USER, {optional: true})
+    public user: UserProfile,
     @repository(UserRepository)
-    public userRepository: UserRepository,
+    protected userRepository: UserRepository,
   ) {}
 
-  @post('/users')
-  @response(200, {
-    description: 'User model instance',
-    content: {'application/json': {schema: getModelSchemaRef(User)}},
-  })
+  /* #region  - Register */
+  @post('/users/register')
+  @response(200, responseSchema.register)
   async create(
-    @requestBody({
-      content: {
-        'application/json': {
-          schema: getModelSchemaRef(User, {
-            title: 'NewUser',
-            exclude: ['id'],
-          }),
-        },
-      },
-    })
+    @requestBody(requestBodySchema.register)
     user: Omit<User, 'id'>,
   ): Promise<User> {
+    const {email, password} = user;
+    const found = await this.userRepository.find({where: {email}});
+
+    if (found.length) throw new Error('User already exist'); //TODO throw better error
+
+    const salt = bcrypt.genSaltSync(10);
+    const hashedPassword = bcrypt.hashSync(password, salt);
+
+    user.password = hashedPassword;
+
+    //Initialize role and approval
+    user.role = 'user';
+    user.approved = false;
     return this.userRepository.create(user);
   }
+  /* #endregion */
+
+  /* #region - Login */
+  @post('/users/login')
+  @response(200, responseSchema.login)
+  async login(
+    @requestBody(requestBodySchema.login)
+    user: User,
+  ): Promise<{token: string}> {
+    const {email, password} = user;
+    const existingUser = await this.userRepository.findOne({where: {email}});
+    if (!existingUser) throw new Error('User does not exist in the database');
+
+    const validPassword = bcrypt.compareSync(password, existingUser?.password);
+    if (!validPassword) throw new Error('Wrong password');
+
+    const secId = existingUser?.id?.toString();
+    const userObj: UserProfile = {
+      [securityId]: secId ?? '',
+      email: existingUser.email,
+      password: existingUser.password,
+      id: existingUser.id,
+      role: existingUser.role,
+    };
+
+    const token = await this.jwtService.generateToken(userObj);
+    return {token};
+  }
+  /* #endregion */
 
   @get('/users/count')
   @response(200, {
@@ -144,6 +191,7 @@ export class UserController {
     await this.userRepository.deleteById(id);
   }
 
+  //TODO REMOVE LATER
   @get('/sample/{userId}/review')
   async createReview(
     @param.path.string('userId') userId: typeof User.prototype.id,
