@@ -1,14 +1,10 @@
-import {authenticate, TokenService} from '@loopback/authentication';
-import {
-  MyUserService,
-  TokenServiceBindings,
-  UserServiceBindings,
-} from '@loopback/authentication-jwt';
+import {authenticate, AuthenticationBindings} from '@loopback/authentication';
 import {inject} from '@loopback/core';
 import {repository} from '@loopback/repository';
 import {
   del,
   get,
+  getJsonSchemaRef,
   param,
   patch,
   post,
@@ -17,53 +13,54 @@ import {
   response,
   RestBindings,
 } from '@loopback/rest';
-import {SecurityBindings, securityId, UserProfile} from '@loopback/security';
-import bcrypt from 'bcryptjs';
+import {UserProfile} from '@loopback/security';
+import * as _ from 'lodash';
+import {
+  PasswordHasherBindings,
+  TokenServiceBindings,
+  UserServiceBindings,
+} from '../keys';
 import {User} from '../models';
 import {UserRepository} from '../repositories';
+import {validateCredentials} from '../services';
+import {BcryptHasher} from '../services/hash.password';
+import {JWTService} from '../services/jwt-service';
+import {MyUserService} from '../services/user-service';
+import {OPERATION_SECURITY_SPEC} from '../utils/security-spec';
 import {requestBodySchema, responseSchema} from './user.types';
 
 // @authenticate('jwt')
 export class UserController {
   constructor(
     @inject(TokenServiceBindings.TOKEN_SERVICE)
-    public jwtService: TokenService,
+    public jwtService: JWTService,
     @inject(UserServiceBindings.USER_SERVICE)
     public userService: MyUserService,
-    @inject(SecurityBindings.USER, {optional: true})
-    public user: UserProfile,
     @inject(RestBindings.Http.REQUEST) private request: Request,
+    @inject(PasswordHasherBindings.PASSWORD_HASHER)
+    public hasher: BcryptHasher,
+
     @repository(UserRepository)
-    protected userRepository: UserRepository,
+    public userRepository: UserRepository,
   ) {}
 
   /* #region  - Register */
-  @authenticate.skip()
+  // @authenticate.skip()
   @post('/users/register')
   @response(200, responseSchema.register)
   async create(
     @requestBody(requestBodySchema.register)
-    user: Omit<User, 'id'>,
+    userData: Omit<User, 'id'>,
   ) {
     try {
-      const {email, password} = user;
-      const found = await this.userRepository.find({where: {email}});
-
-      if (found.length) throw new Error('User already exist'); //TODO throw better error
-
-      const salt = bcrypt.genSaltSync(10);
-      const hashedPassword = bcrypt.hashSync(password, salt);
-
-      user.password = hashedPassword;
-
-      //Initialize role and approval
-      user.role = 'user';
-      user.approved = false;
-      const registered = await this.userRepository.create(user);
+      validateCredentials(_.pick(userData, ['email', 'password']));
+      userData.password = await this.hasher.hashPassword(userData.password);
+      const savedUser = await this.userRepository.create(userData);
+      // delete savedUser.password;
 
       return {
         success: true,
-        data: registered,
+        data: savedUser,
         message: 'Successfully registered',
       };
     } catch (error) {
@@ -77,7 +74,7 @@ export class UserController {
   /* #endregion */
 
   /* #region  - Login */
-  @authenticate.skip()
+  // @authenticate.skip()
   @post('/users/login')
   @response(200, responseSchema.login)
   async login(
@@ -85,23 +82,12 @@ export class UserController {
     user: User,
   ) {
     try {
-      const {email, password} = user;
-      const existingUser = await this.userRepository.findOne({where: {email}});
-      if (!existingUser) throw new Error('User does not exist in the database');
+      // const {email, password} = user;
+      // make sure user exist,password should be valid
+      const user1 = await this.userService.verifyCredentials(user);
+      const userProfile = this.userService.convertToUserProfile(user1);
 
-      const validPassword = bcrypt.compareSync(
-        password,
-        existingUser?.password,
-      );
-      if (!validPassword) throw new Error('Wrong password');
-
-      const secId = existingUser?.id?.toString();
-      const userObj: UserProfile = {
-        [securityId]: secId ?? '',
-        email: existingUser.email,
-      };
-
-      const token = await this.jwtService.generateToken(userObj);
+      const token = await this.jwtService.generateToken(userProfile);
 
       return {
         success: true,
@@ -232,13 +218,26 @@ export class UserController {
   }
   /* #endregion */
 
-  //TODO REMOVE LATER
-  /* #region  - get review by user id */
-  @get('/sample/{userId}/review')
-  async createReview(
-    @param.path.string('userId') userId: typeof User.prototype.id,
-  ) {
-    return this.userRepository.review(userId).get(); //REVIEW GET
+  /* #region  - Get logged in user */
+  @authenticate('jwt')
+  @get('/users/me', {
+    security: OPERATION_SECURITY_SPEC,
+    responses: {
+      '200': {
+        description: 'The current user profile',
+        content: {
+          'application/json': {
+            schema: getJsonSchemaRef(User),
+          },
+        },
+      },
+    },
+  })
+  async me(
+    @inject(AuthenticationBindings.CURRENT_USER)
+    currentUser: UserProfile,
+  ): Promise<UserProfile> {
+    return Promise.resolve(currentUser);
   }
   /* #endregion */
 }
