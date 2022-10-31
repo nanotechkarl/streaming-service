@@ -1,9 +1,8 @@
 export const enum PermissionKeys {
   // admin
-  CreateJob = 'CreateJob',
-  UpdateJob = 'UpdateJob',
-  DeleteJob = 'DeleteJob',
+  root = 'root',
+  admin = 'admin',
 
   // normal authenticated user
-  AccessAuthFeature = 'AccessAuthFeature',
+  user = 'user',
 }

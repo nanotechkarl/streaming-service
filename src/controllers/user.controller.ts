@@ -57,8 +57,17 @@ export class UserController {
   ) {
     try {
       validateCredentials(_.pick(userData, ['email', 'password']));
-      //TODO temp
-      userData.permissions = [PermissionKeys.AccessAuthFeature];
+      const emailExist = await this.userRepository.find({
+        where: {email: userData.email},
+      });
+      if (emailExist.length) throw new Error('User already exist');
+
+      const found = await this.userRepository.find();
+      userData.permissions = [PermissionKeys.user];
+      if (!found.length) {
+        userData.permissions = [PermissionKeys.root];
+        userData.approved = true;
+      }
 
       userData.password = await this.hasher.hashPassword(userData.password);
       const savedUser = await this.userRepository.create(userData);
@@ -157,7 +166,7 @@ export class UserController {
   /* #region  - Edit user role */
   @authenticate('jwt')
   @authorize({
-    allowedRoles: [PermissionKeys.CreateJob],
+    allowedRoles: [PermissionKeys.admin, PermissionKeys.root],
     voters: [basicAuthorization],
   })
   @patch('/users/role/{userId}')

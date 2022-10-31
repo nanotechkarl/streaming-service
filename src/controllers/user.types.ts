@@ -7,7 +7,7 @@ export const requestBodySchema = {
     content: {
       'application/json': {
         schema: getModelSchemaRef(User, {
-          exclude: ['id'],
+          exclude: ['id', 'approved', 'permissions'],
         }),
       },
     },
@@ -16,7 +16,7 @@ export const requestBodySchema = {
     content: {
       'application/json': {
         schema: getModelSchemaRef(User, {
-          exclude: ['id', 'firstName', 'lastName', 'role', 'approved'],
+          exclude: ['id', 'firstName', 'lastName', 'approved'],
         }),
       },
     },
@@ -41,7 +41,7 @@ export const requestBodySchema = {
     content: {
       'application/json': {
         schema: getModelSchemaRef(User, {
-          exclude: ['id', 'password', 'role', 'firstName', 'lastName', 'email'],
+          exclude: ['id', 'password', 'firstName', 'lastName', 'email'],
         }),
       },
     },
@@ -146,14 +146,7 @@ export const responseSchema = {
               type: 'boolean',
             },
             data: getModelSchemaRef(User, {
-              exclude: [
-                'id',
-                'password',
-                'role',
-                'firstName',
-                'lastName',
-                'email',
-              ],
+              exclude: ['id', 'password', 'firstName', 'lastName', 'email'],
             }),
             message: {
               type: 'string',
@@ -200,7 +193,7 @@ export const responseSchema = {
               type: 'boolean',
             },
             data: getModelSchemaRef(User, {
-              exclude: ['id', 'role', 'approved'],
+              exclude: ['id', 'approved', 'permissions'],
             }),
             message: {
               type: 'string',

@@ -46,21 +46,20 @@ export class User extends Entity {
   lastName: string;
 
   @property({
-    type: 'string',
-    required: true,
-  })
-  role: string;
-
-  @property({
     type: 'boolean',
-    required: true,
+    default: false,
+    hidden: true,
   })
   approved: boolean;
 
   @hasOne(() => Review)
   review?: Review;
 
-  @property.array(String)
+  @property({
+    type: 'array',
+    itemType: 'string',
+    hidden: true,
+  })
   permissions: string[];
 
   constructor(data?: Partial<User>) {

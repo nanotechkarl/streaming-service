@@ -56,10 +56,7 @@ export async function basicAuthorization(
   }
 
   // Admin and support accounts bypass id verification
-  if (
-    currentUser.permissions.includes('admin') ||
-    currentUser.permissions.includes('support')
-  ) {
+  if (currentUser.permissions.includes('root')) {
     return AuthorizationDecision.ALLOW;
   }
 
