@@ -18,10 +18,9 @@ import {
   RestBindings,
 } from '@loopback/rest';
 import {SecurityBindings, UserProfile} from '@loopback/security';
-import {Actor, Movie, Review} from '../models';
+import {Movie} from '../models';
 import {MovieRepository} from '../repositories';
 import {requestBodySchema, responseSchema} from './movie.types';
-const {ObjectId} = require('mongodb');
 export class MovieController {
   constructor(
     @inject(TokenServiceBindings.TOKEN_SERVICE)
@@ -141,42 +140,31 @@ export class MovieController {
   }
   /* #endregion */
 
-  //TODO add trycatch
+  //TODO fix schema res/req
   /* #region  - Search movie by name */
   @get('/movies/search/{title}')
   @response(200, {
     description: 'Movie model instance',
   })
   async findByName(@param.path.string('title') name: string) {
-    console.log('name :', name);
-    const pattern = new RegExp('^' + name + '.*', 'i');
+    try {
+      const pattern = new RegExp('^' + name + '.*', 'i');
+      const found = await this.movieRepository.find({
+        where: {title: {regexp: pattern}},
+      });
 
-    return this.movieRepository.find({where: {title: {regexp: pattern}}});
-  }
-  /* #endregion */
-
-  //TODO REMOVE LATER
-  /* #region  - sample actor */
-  @post('/sample/{id}/actor')
-  async createActor(
-    @param.path.string('id') movieId: typeof Movie.prototype.id,
-    @requestBody() actorData: Actor,
-  ) {
-    return this.movieRepository.actors(movieId).create(actorData);
-  }
-  /* #endregion */
-
-  //TODO REMOVE LATER
-  /* #region  - sample review */
-  @post('/sample/{movieId}/review')
-  async createReview(
-    @param.path.string('movieId') movieId: typeof Movie.prototype.id,
-    @requestBody() reviewData: Review,
-  ) {
-    reviewData.userId = ObjectId('635d97eee2ddeb65542f12be'); //TODO GET FROM TOKEN
-    return this.movieRepository.reviews(movieId).create(reviewData);
-    // return this.movieRepository.reviews(movieId).find(); //REVIEW GET
-    // return this.movieRepository.reviews(movieId).create(reviewData); //REVIEW POST
+      return {
+        success: true,
+        data: found,
+        message: 'Succesfully fetched movie/s',
+      };
+    } catch (error) {
+      return {
+        success: false,
+        data: null,
+        message: error.message,
+      };
+    }
   }
   /* #endregion */
 }
