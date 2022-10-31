@@ -1,5 +1,6 @@
 import {getModelSchemaRef} from '@loopback/rest';
 import {User} from '../models';
+import {OPERATION_SECURITY_SPEC} from '../utils/security-spec';
 
 /* #region  - request/response schema */
 export const requestBodySchema = {
@@ -50,7 +51,7 @@ export const requestBodySchema = {
 
 export const responseSchema = {
   getAll: {
-    description: 'Array of User model instances',
+    description: 'Get all users details',
     content: {
       'application/json': {
         schema: {
@@ -75,7 +76,7 @@ export const responseSchema = {
     },
   },
   getById: {
-    description: 'User model instance',
+    description: 'Get user details by id',
     content: {
       'application/json': {
         schema: {
@@ -98,7 +99,7 @@ export const responseSchema = {
     },
   },
   getUserLoggedIn: {
-    description: 'User model instance',
+    description: 'Get logged in account details',
     content: {
       'application/json': {
         schema: getModelSchemaRef(User, {
@@ -137,6 +138,7 @@ export const responseSchema = {
     },
   },
   updateApproval: {
+    description: 'Update Approval',
     content: {
       'application/json': {
         schema: {
@@ -204,7 +206,7 @@ export const responseSchema = {
     },
   },
   login: {
-    description: 'Token',
+    description: 'Get user token',
     content: {
       'application/json': {
         schema: {
@@ -226,6 +228,15 @@ export const responseSchema = {
             },
           },
         },
+      },
+    },
+  },
+  me: {
+    security: OPERATION_SECURITY_SPEC,
+    description: 'The current user profile',
+    content: {
+      'application/json': {
+        schema: getModelSchemaRef(User),
       },
     },
   },

@@ -48,7 +48,6 @@ export class User extends Entity {
   @property({
     type: 'boolean',
     default: false,
-    hidden: true,
   })
   approved: boolean;
 
@@ -58,7 +57,6 @@ export class User extends Entity {
   @property({
     type: 'array',
     itemType: 'string',
-    hidden: true,
   })
   permissions: string[];
 

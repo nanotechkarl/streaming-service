@@ -5,7 +5,6 @@ import {repository} from '@loopback/repository';
 import {
   del,
   get,
-  getJsonSchemaRef,
   param,
   patch,
   post,
@@ -29,7 +28,6 @@ import {basicAuthorization} from '../services/basic-authorizer.service';
 import {BcryptHasher} from '../services/hash.password';
 import {JWTService} from '../services/jwt-service';
 import {MyUserService} from '../services/user-service';
-import {OPERATION_SECURITY_SPEC} from '../utils/security-spec';
 import {requestBodySchema, responseSchema} from './user.types';
 
 export class UserController {
@@ -127,7 +125,9 @@ export class UserController {
   @response(200, responseSchema.getAll)
   async find() {
     try {
-      const users = await this.userRepository.find({include: ['review']});
+      const users = await this.userRepository.find({
+        include: ['review'],
+      });
 
       return {
         success: true,
@@ -144,7 +144,12 @@ export class UserController {
   }
   /* #endregion */
 
-  /* #region  - Get user by id */
+  /* #region  - Get user by id [ADMIN]*/
+  @authenticate('jwt')
+  @authorize({
+    allowedRoles: [PermissionKeys.admin],
+    voters: [basicAuthorization],
+  })
   @get('/users/{userId}')
   @response(200, responseSchema.getById)
   async findById(@param.path.string('userId') userId: string) {
@@ -196,6 +201,44 @@ export class UserController {
   }
   /* #endregion */
 
+  /* #region  - Edit user role [ADMIN]*/
+  @authenticate('jwt')
+  @authorize({
+    allowedRoles: [PermissionKeys.admin],
+    voters: [basicAuthorization],
+  })
+  @patch('/users/role/{userId}')
+  @response(204, responseSchema.updateRole)
+  async replaceRole(
+    @param.path.string('userId') id: string,
+    @requestBody(requestBodySchema.updateRole) user: User,
+  ) {
+    try {
+      const account = await this.userRepository.findById(id);
+      if (account?.permissions.includes('root')) {
+        throw new Error('Cannot edit permissions of root admin');
+      }
+
+      if (user.permissions.includes('root')) {
+        throw new Error('Impossible operation');
+      }
+
+      await this.userRepository.updateById(id, user);
+      return {
+        success: true,
+        data: user,
+        message: 'Succesfully updated role',
+      };
+    } catch (error) {
+      return {
+        success: false,
+        data: null,
+        message: error.message,
+      };
+    }
+  }
+  /* #endregion */
+
   /* #region  - Delete user [ADMIN]*/
   @authenticate('jwt')
   @authorize({
@@ -230,24 +273,25 @@ export class UserController {
 
   /* #region  - Get logged in user */
   @authenticate('jwt')
-  @get('/users/me', {
-    security: OPERATION_SECURITY_SPEC,
-    responses: {
-      '200': {
-        description: 'The current user profile',
-        content: {
-          'application/json': {
-            schema: getJsonSchemaRef(User),
-          },
-        },
-      },
-    },
-  })
+  @get('/users/me')
+  @response(200, responseSchema.me)
   async me(
     @inject(AuthenticationBindings.CURRENT_USER)
     currentUser: UserProfile,
-  ): Promise<UserProfile> {
-    return Promise.resolve(currentUser);
+  ) {
+    try {
+      return {
+        success: true,
+        data: currentUser,
+        message: 'Successfully fetched account',
+      };
+    } catch (error) {
+      return {
+        success: false,
+        data: null,
+        message: error.message,
+      };
+    }
   }
   /* #endregion */
 }

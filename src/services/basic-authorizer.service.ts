@@ -30,7 +30,6 @@ export async function basicAuthorization(
       name: user.name,
       permissions: user.permissions,
     };
-    console.log('currentUser :', currentUser);
   } else {
     return AuthorizationDecision.DENY;
   }
@@ -57,7 +56,10 @@ export async function basicAuthorization(
   }
 
   // Admin and support accounts bypass id verification
-  if (currentUser.permissions.includes('root')) {
+  if (
+    currentUser.permissions.includes('root') ||
+    currentUser.permissions.includes('admin')
+  ) {
     return AuthorizationDecision.ALLOW;
   }
 
