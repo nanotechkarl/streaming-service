@@ -65,7 +65,7 @@ export class UserController {
       const found = await this.userRepository.find();
       userData.permissions = [PermissionKeys.user];
       if (!found.length) {
-        userData.permissions = [PermissionKeys.root];
+        userData.permissions = [PermissionKeys.root, PermissionKeys.admin];
         userData.approved = true;
       }
 
@@ -88,7 +88,6 @@ export class UserController {
   /* #endregion */
 
   /* #region  - Login */
-  // @authenticate.skip()
   @post('/users/login')
   @response(200, responseSchema.login)
   async login(
@@ -118,7 +117,12 @@ export class UserController {
   }
   /* #endregion */
 
-  /* #region  - Get all users with rating [ADMIN]*/
+  /* #region  - Get all users with review [ADMIN]*/
+  @authenticate('jwt')
+  @authorize({
+    allowedRoles: [PermissionKeys.admin],
+    voters: [basicAuthorization],
+  })
   @get('/users')
   @response(200, responseSchema.getAll)
   async find() {
@@ -163,36 +167,12 @@ export class UserController {
   }
   /* #endregion */
 
-  /* #region  - Edit user role */
+  /* #region  - Approve account [ADMIN]*/
   @authenticate('jwt')
   @authorize({
-    allowedRoles: [PermissionKeys.admin, PermissionKeys.root],
+    allowedRoles: [PermissionKeys.admin],
     voters: [basicAuthorization],
   })
-  @patch('/users/role/{userId}')
-  @response(204, responseSchema.updateRole)
-  async replaceRole(
-    @param.path.string('userId') id: string,
-    @requestBody(requestBodySchema.updateRole) user: User,
-  ) {
-    try {
-      await this.userRepository.updateById(id, user);
-      return {
-        success: true,
-        data: user,
-        message: 'Succesfully updated role',
-      };
-    } catch (error) {
-      return {
-        success: false,
-        data: null,
-        message: error.message,
-      };
-    }
-  }
-  /* #endregion */
-
-  /* #region  - Approve account */
   @patch('/users/approval/{userId}')
   @response(204, responseSchema.updateRole)
   async replaceApprove(
@@ -216,12 +196,23 @@ export class UserController {
   }
   /* #endregion */
 
-  /* #region  - Delete user */
+  /* #region  - Delete user [ADMIN]*/
+  @authenticate('jwt')
+  @authorize({
+    allowedRoles: [PermissionKeys.admin],
+    voters: [basicAuthorization],
+  })
   @del('/users/{userId}')
   @response(204, responseSchema.delete)
   async deleteById(@param.path.string('userId') id: string) {
     try {
+      const account = await this.userRepository.findById(id);
+      if (account?.permissions.includes('root')) {
+        throw new Error('Cannot delete root admin');
+      }
+
       await this.userRepository.deleteById(id);
+
       return {
         success: true,
         data: {id},
