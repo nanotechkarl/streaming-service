@@ -141,6 +141,7 @@ export class MovieController {
   }
   /* #endregion */
 
+  //TODO add trycatch
   /* #region  - Search movie by name */
   @get('/movies/search/{title}')
   @response(200, {

@@ -1,15 +1,8 @@
-import {Filter, repository} from '@loopback/repository';
-import {
-  del,
-  get,
-  getModelSchemaRef,
-  param,
-  post,
-  requestBody,
-  response,
-} from '@loopback/rest';
+import {repository} from '@loopback/repository';
+import {del, get, param, post, requestBody, response} from '@loopback/rest';
 import {Actor} from '../models';
 import {ActorRepository} from '../repositories';
+import {requestBodySchema, responseSchema} from './actor.types';
 
 export class ActorController {
   constructor(
@@ -17,55 +10,73 @@ export class ActorController {
     public actorRepository: ActorRepository,
   ) {}
 
+  //TODO check movieId and actorDetailsId if existing before create
   /* #region  - Add actor to movie */
   @post('/actors')
-  @response(200, {
-    description: 'Actor model instance',
-    content: {'application/json': {schema: getModelSchemaRef(Actor)}},
-  })
+  @response(200, responseSchema.addActor)
   async create(
-    @requestBody({
-      content: {
-        'application/json': {
-          schema: getModelSchemaRef(Actor, {
-            title: 'NewActor',
-            exclude: ['id'],
-          }),
-        },
-      },
-    })
+    @requestBody(requestBodySchema.addActor)
     actor: Omit<Actor, 'id'>,
-  ): Promise<Actor> {
-    return this.actorRepository.create(actor);
+  ) {
+    try {
+      const created = this.actorRepository.create(actor);
+
+      return {
+        success: true,
+        data: created,
+        message: 'Succesfully deleted movie',
+      };
+    } catch (error) {
+      return {
+        success: false,
+        data: null,
+        message: error.message,
+      };
+    }
   }
   /* #endregion */
 
   /* #region  - Get all actors of movie */
   @get('/actors')
-  @response(200, {
-    description: 'Array of Actor model instances',
-    content: {
-      'application/json': {
-        schema: {
-          type: 'array',
-          items: getModelSchemaRef(Actor, {includeRelations: true}),
-        },
-      },
-    },
-  })
-  async find(@param.filter(Actor) filter?: Filter<Actor>): Promise<Actor[]> {
-    return this.actorRepository.find(filter);
+  @response(200, responseSchema.getAll)
+  async find() {
+    try {
+      const actors = await this.actorRepository.find();
+      return {
+        success: true,
+        data: actors,
+        message: 'Succesfully deleted movie',
+      };
+    } catch (error) {
+      return {
+        success: false,
+        data: null,
+        message: error.message,
+      };
+    }
   }
 
   /* #endregion */
 
   /* #region  - Delete actor from the movie */
   @del('/actors/{id}')
-  @response(204, {
-    description: 'Actor DELETE success',
-  })
-  async deleteById(@param.path.string('id') id: string): Promise<void> {
-    await this.actorRepository.deleteById(id);
+  @response(200, responseSchema.delete)
+  async deleteById(@param.path.string('id') id: string) {
+    try {
+      await this.actorRepository.deleteById(id);
+
+      return {
+        success: true,
+        data: {id},
+        message: 'Succesfully deleted actor in the movie',
+      };
+    } catch (error) {
+      return {
+        success: false,
+        data: null,
+        message: error.message,
+      };
+    }
   }
   /* #endregion */
 }
