@@ -1,4 +1,5 @@
 import {belongsTo, Entity, model, property} from '@loopback/repository';
+import {ActorDetails} from './actor-details.model';
 import {Movie} from './movie.model';
 
 @model()
@@ -10,29 +11,8 @@ export class Actor extends Entity {
   })
   id?: string;
 
-  @property({
-    type: 'string',
-    required: true,
-  })
-  firstName: string;
-
-  @property({
-    type: 'string',
-    required: true,
-  })
-  lastName: string;
-
-  @property({
-    type: 'string',
-    required: true,
-  })
-  gender: string;
-
-  @property({
-    type: 'number',
-    required: true,
-  })
-  age: number;
+  @belongsTo(() => ActorDetails)
+  actorDetailsId: string;
 
   @belongsTo(() => Movie)
   movieId: string;

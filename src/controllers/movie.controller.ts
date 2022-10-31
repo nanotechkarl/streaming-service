@@ -41,7 +41,7 @@ export class MovieController {
   @response(200, responseSchema.getAll)
   async find() {
     try {
-      const users = await this.movieRepository.find({include: ['reviews']});
+      const users = await this.movieRepository.find({include: ['actors']});
 
       return {
         success: true,
@@ -125,9 +125,10 @@ export class MovieController {
         throw new Error('Movie too early to delete');
 
       await this.movieRepository.deleteById(id);
+      await this.movieRepository.actors(id).delete(); //delete all actors ref
       return {
         success: true,
-        data: id,
+        data: {id},
         message: 'Succesfully deleted movie',
       };
     } catch (error) {

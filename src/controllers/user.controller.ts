@@ -219,7 +219,7 @@ export class UserController {
       await this.userRepository.deleteById(id);
       return {
         success: true,
-        data: id,
+        data: {id},
         message: 'Successfully deleted user',
       };
     } catch (error) {
