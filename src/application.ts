@@ -2,8 +2,8 @@ import {
   AuthenticationComponent,
   registerAuthenticationStrategy,
 } from '@loopback/authentication';
-// import {SECURITY_SCHEME_SPEC} from './utils/security-spec';
 import {SECURITY_SCHEME_SPEC} from '@loopback/authentication-jwt';
+import {AuthorizationComponent} from '@loopback/authorization';
 import {BootMixin} from '@loopback/boot';
 import {ApplicationConfig} from '@loopback/core';
 import {RepositoryMixin} from '@loopback/repository';
@@ -25,7 +25,9 @@ import {MySequence} from './sequence';
 import {BcryptHasher} from './services/hash.password';
 import {JWTService} from './services/jwt-service';
 import {MyUserService} from './services/user-service';
+
 export {ApplicationConfig};
+
 export class StreamingServiceApplication extends BootMixin(
   ServiceMixin(RepositoryMixin(RestApplication)),
 ) {
@@ -39,6 +41,7 @@ export class StreamingServiceApplication extends BootMixin(
     this.addSecuritySpec();
 
     this.component(AuthenticationComponent);
+    this.component(AuthorizationComponent);
     registerAuthenticationStrategy(this, JWTStrategy);
 
     // Set up the custom sequence
@@ -65,13 +68,6 @@ export class StreamingServiceApplication extends BootMixin(
     };
   }
   setupBinding(): void {
-    // this.bind('service.hasher').toClass(BcryptHasher);
-    // this.bind('rounds').to(10);
-    // this.bind('service.user.service').toClass(MyUserService)
-    // this.bind('service.jwt.service').toClass(JWTService);
-    // this.bind('authentication.jwt.secret').to('dvchgdvcjsdbhcbdjbvjb');
-    // this.bind('authentication.jwt.expiresIn').to('7h');
-
     this.bind(PasswordHasherBindings.PASSWORD_HASHER).toClass(BcryptHasher);
     this.bind(PasswordHasherBindings.ROUNDS).to(10);
     this.bind(UserServiceBindings.USER_SERVICE).toClass(MyUserService);

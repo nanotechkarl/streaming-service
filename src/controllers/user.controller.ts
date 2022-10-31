@@ -1,4 +1,5 @@
 import {authenticate, AuthenticationBindings} from '@loopback/authentication';
+import {authorize} from '@loopback/authorization';
 import {inject} from '@loopback/core';
 import {repository} from '@loopback/repository';
 import {
@@ -13,8 +14,9 @@ import {
   response,
   RestBindings,
 } from '@loopback/rest';
-import {UserProfile} from '@loopback/security';
+import {SecurityBindings, UserProfile} from '@loopback/security';
 import * as _ from 'lodash';
+import {PermissionKeys} from '../authorization/Permission-keys';
 import {
   PasswordHasherBindings,
   TokenServiceBindings,
@@ -23,15 +25,17 @@ import {
 import {User} from '../models';
 import {UserRepository} from '../repositories';
 import {validateCredentials} from '../services';
+import {basicAuthorization} from '../services/basic-authorizer.service';
 import {BcryptHasher} from '../services/hash.password';
 import {JWTService} from '../services/jwt-service';
 import {MyUserService} from '../services/user-service';
 import {OPERATION_SECURITY_SPEC} from '../utils/security-spec';
 import {requestBodySchema, responseSchema} from './user.types';
 
-// @authenticate('jwt')
 export class UserController {
   constructor(
+    @inject(SecurityBindings.USER, {optional: true})
+    public user: UserProfile,
     @inject(TokenServiceBindings.TOKEN_SERVICE)
     public jwtService: JWTService,
     @inject(UserServiceBindings.USER_SERVICE)
@@ -45,7 +49,6 @@ export class UserController {
   ) {}
 
   /* #region  - Register */
-  // @authenticate.skip()
   @post('/users/register')
   @response(200, responseSchema.register)
   async create(
@@ -54,9 +57,11 @@ export class UserController {
   ) {
     try {
       validateCredentials(_.pick(userData, ['email', 'password']));
+      //TODO temp
+      userData.permissions = [PermissionKeys.AccessAuthFeature];
+
       userData.password = await this.hasher.hashPassword(userData.password);
       const savedUser = await this.userRepository.create(userData);
-      // delete savedUser.password;
 
       return {
         success: true,
@@ -91,7 +96,7 @@ export class UserController {
 
       return {
         success: true,
-        data: token,
+        data: {token},
         message: 'Successfully logged in',
       };
     } catch (error) {
@@ -150,6 +155,11 @@ export class UserController {
   /* #endregion */
 
   /* #region  - Edit user role */
+  @authenticate('jwt')
+  @authorize({
+    allowedRoles: [PermissionKeys.CreateJob],
+    voters: [basicAuthorization],
+  })
   @patch('/users/role/{userId}')
   @response(204, responseSchema.updateRole)
   async replaceRole(

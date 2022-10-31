@@ -60,6 +60,9 @@ export class User extends Entity {
   @hasOne(() => Review)
   review?: Review;
 
+  @property.array(String)
+  permissions: string[];
+
   constructor(data?: Partial<User>) {
     super(data);
   }
