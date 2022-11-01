@@ -49,7 +49,7 @@ export const responseSchema = {
     },
   },
   getById: {
-    description: 'Actor model instance',
+    description: 'Get actor by id',
     content: {
       'application/json': {
         schema: {
