@@ -27,7 +27,7 @@ export const requestBodySchema = {
 
 export const responseSchema = {
   getAll: {
-    description: 'Array of ActorDetails model instances',
+    description: 'Get all actors',
     content: {
       'application/json': {
         schema: {
@@ -49,7 +49,7 @@ export const responseSchema = {
     },
   },
   getById: {
-    description: 'ActorDetails model instance',
+    description: 'Get actors by id',
     content: {
       'application/json': {
         schema: {

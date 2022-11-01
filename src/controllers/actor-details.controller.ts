@@ -1,3 +1,4 @@
+import {inject} from '@loopback/core';
 import {repository} from '@loopback/repository';
 import {
   del,
@@ -5,22 +6,52 @@ import {
   param,
   patch,
   post,
+  Request,
   requestBody,
   response,
+  RestBindings,
 } from '@loopback/rest';
+import {SecurityBindings, UserProfile} from '@loopback/security';
+import {
+  PasswordHasherBindings,
+  TokenServiceBindings,
+  UserServiceBindings,
+} from '../keys';
+import {BcryptHasher} from '../services/hash.password';
+import {JWTService} from '../services/jwt-service';
+import {MyUserService} from '../services/user-service';
+
+import {authenticate} from '@loopback/authentication';
+import {authorize} from '@loopback/authorization';
+import {PermissionKeys} from '../authorization/Permission-keys';
 import {ActorDetails} from '../models';
 import {ActorDetailsRepository, ActorRepository} from '../repositories';
+import {basicAuthorization} from '../services/basic-authorizer.service';
 import {requestBodySchema, responseSchema} from './actor-details.types';
-
 export class ActorDetailsController {
   constructor(
+    @inject(SecurityBindings.USER, {optional: true})
+    public user: UserProfile,
+    @inject(TokenServiceBindings.TOKEN_SERVICE)
+    public jwtService: JWTService,
+    @inject(UserServiceBindings.USER_SERVICE)
+    public userService: MyUserService,
+    @inject(RestBindings.Http.REQUEST) private request: Request,
+    @inject(PasswordHasherBindings.PASSWORD_HASHER)
+    public hasher: BcryptHasher,
+
     @repository(ActorDetailsRepository)
     public actorDetailsRepository: ActorDetailsRepository,
     @repository(ActorRepository)
     public actorRepository: ActorRepository,
   ) {}
 
-  /* #region  - Create Actor */
+  /* #region  - Create Actor [ADMIN]*/
+  @authenticate('jwt')
+  @authorize({
+    allowedRoles: [PermissionKeys.admin],
+    voters: [basicAuthorization],
+  })
   @post('/actor-details')
   @response(200, responseSchema.createActor)
   async create(
@@ -67,7 +98,12 @@ export class ActorDetailsController {
   }
   /* #endregion */
 
-  /* #region  - Modify Actor */
+  /* #region  - Modify Actor [ADMIN]*/
+  @authenticate('jwt')
+  @authorize({
+    allowedRoles: [PermissionKeys.admin],
+    voters: [basicAuthorization],
+  })
   @patch('/actor-details/{id}')
   @response(204, responseSchema.updateActor)
   async updateById(
@@ -93,7 +129,12 @@ export class ActorDetailsController {
   }
   /* #endregion */
 
-  /* #region  - Delete Actor(only if no movies) */
+  /* #region  - Delete Actor(only if no movies) [ADMIN]*/
+  @authenticate('jwt')
+  @authorize({
+    allowedRoles: [PermissionKeys.admin],
+    voters: [basicAuthorization],
+  })
   @del('/actor-details/{id}')
   @response(200, responseSchema.delete)
   async deleteById(@param.path.string('id') id: string) {
