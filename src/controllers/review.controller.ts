@@ -1,3 +1,6 @@
+import {authenticate} from '@loopback/authentication';
+import {authorize} from '@loopback/authorization';
+import {inject} from '@loopback/core';
 import {repository} from '@loopback/repository';
 import {
   del,
@@ -5,21 +8,45 @@ import {
   param,
   patch,
   post,
+  Request,
   requestBody,
   response,
+  RestBindings,
 } from '@loopback/rest';
+import {SecurityBindings, UserProfile} from '@loopback/security';
+import {PermissionKeys} from '../authorization/Permission-keys';
+import {
+  PasswordHasherBindings,
+  TokenServiceBindings,
+  UserServiceBindings,
+} from '../keys';
 import {Review} from '../models';
 import {ReviewRepository} from '../repositories';
+import {basicAuthorization} from '../services/basic-authorizer.service';
+import {BcryptHasher} from '../services/hash.password';
+import {JWTService} from '../services/jwt-service';
+import {MyUserService} from '../services/user-service';
 import {requestBodySchema, responseSchema} from './review.types';
-
 export class ReviewController {
   constructor(
+    @inject(SecurityBindings.USER, {optional: true})
+    public user: UserProfile,
+    @inject(TokenServiceBindings.TOKEN_SERVICE)
+    public jwtService: JWTService,
+    @inject(UserServiceBindings.USER_SERVICE)
+    public userService: MyUserService,
+    @inject(RestBindings.Http.REQUEST) private request: Request,
+    @inject(PasswordHasherBindings.PASSWORD_HASHER)
+    public hasher: BcryptHasher,
+
     @repository(ReviewRepository)
     public reviewRepository: ReviewRepository,
   ) {}
 
   //TODO make sure userId, movieId exist
-  /* #region  - Add review to movie*/
+  //TODO utilize userobject inside jwt for crud needed
+  /* #region  - Add review to movie [USER-byJWT]*/
+  @authenticate('jwt')
   @post('/reviews')
   @response(200, responseSchema.addReview)
   async create(
@@ -65,7 +92,12 @@ export class ReviewController {
   }
   /* #endregion */
 
-  /* #region  - Get review by userId */
+  /* #region  - Get review by userId [ADMIN]*/
+  @authenticate('jwt')
+  @authorize({
+    allowedRoles: [PermissionKeys.admin],
+    voters: [basicAuthorization],
+  })
   @get('/reviews/{userId}')
   @response(200, responseSchema.getByUserId)
   async findById(@param.path.string('userId') userId: string) {
@@ -87,7 +119,8 @@ export class ReviewController {
   }
   /* #endregion */
 
-  /* #region  - Edit review */
+  /* #region  - Edit review [USER-byJWT]*/
+  @authenticate('jwt')
   @patch('/reviews/{id}')
   @response(200, responseSchema.updateReview)
   async updateById(
@@ -112,7 +145,8 @@ export class ReviewController {
   }
   /* #endregion */
 
-  /* #region  - Delete review */
+  /* #region  - Delete review [USER-byJWT]*/
+  @authenticate('jwt')
   @del('/reviews/{id}')
   @response(200, responseSchema.delete)
   async deleteById(@param.path.string('id') id: string) {
