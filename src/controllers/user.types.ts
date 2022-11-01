@@ -8,7 +8,7 @@ export const requestBodySchema = {
     content: {
       'application/json': {
         schema: getModelSchemaRef(User, {
-          exclude: ['id', 'approved', 'permissions'],
+          exclude: ['id', 'approved'],
         }),
       },
     },

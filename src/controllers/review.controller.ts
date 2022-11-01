@@ -112,6 +112,7 @@ export class ReviewController {
   }
   /* #endregion */
 
+  /* #region  - Delete review */
   @del('/reviews/{id}')
   @response(200, responseSchema.delete)
   async deleteById(@param.path.string('id') id: string) {
@@ -130,4 +131,5 @@ export class ReviewController {
       };
     }
   }
+  /* #endregion */
 }

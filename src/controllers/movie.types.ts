@@ -13,11 +13,20 @@ export const requestBodySchema = {
       },
     },
   },
+  addMovie: {
+    content: {
+      'application/json': {
+        schema: getModelSchemaRef(Movie, {
+          exclude: ['id'],
+        }),
+      },
+    },
+  },
 };
 
 export const responseSchema = {
   getAll: {
-    description: 'Array of Movie model instances',
+    description: 'Get All movies',
     content: {
       'application/json': {
         schema: {
@@ -42,7 +51,7 @@ export const responseSchema = {
     },
   },
   getById: {
-    description: 'Movie model instance',
+    description: 'Get movie by id',
     content: {
       'application/json': {
         schema: {
@@ -64,7 +73,7 @@ export const responseSchema = {
     },
   },
   addMovie: {
-    description: 'Movie model instance',
+    description: 'Add new movie',
     content: {
       'application/json': {
         schema: {
@@ -124,6 +133,31 @@ export const responseSchema = {
                   type: 'string',
                 },
               },
+            },
+            message: {
+              type: 'string',
+            },
+          },
+        },
+      },
+    },
+  },
+  search: {
+    description: 'Search movie by title',
+    content: {
+      'application/json': {
+        schema: {
+          type: 'object',
+          properties: {
+            success: {
+              type: 'boolean',
+            },
+            data: {
+              type: Array,
+              items: getModelSchemaRef(Movie, {
+                includeRelations: false,
+                optional: ['reviews'],
+              }),
             },
             message: {
               type: 'string',

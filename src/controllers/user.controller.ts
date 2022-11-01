@@ -62,6 +62,11 @@ export class UserController {
 
       const found = await this.userRepository.find();
       userData.permissions = [PermissionKeys.user];
+
+      //Permission to be an admin(needs approval)
+      if (userData.permissions.includes('admin')) {
+        userData.permissions = [PermissionKeys.admin];
+      }
       if (!found.length) {
         userData.permissions = [PermissionKeys.root, PermissionKeys.admin];
         userData.approved = true;
@@ -85,7 +90,7 @@ export class UserController {
   }
   /* #endregion */
 
-  /* #region  - Login */
+  /* #region  - Login await approval*/
   @post('/users/login')
   @response(200, responseSchema.login)
   async login(
@@ -93,10 +98,11 @@ export class UserController {
     user: User,
   ) {
     try {
-      // const {email, password} = user;
       // make sure user exist,password should be valid
-      const user1 = await this.userService.verifyCredentials(user);
-      const userProfile = this.userService.convertToUserProfile(user1);
+      const userVerified = await this.userService.verifyCredentials(user);
+      const userProfile = this.userService.convertToUserProfile(userVerified);
+
+      if (!userProfile.approved) throw new Error('Account is not yet approved');
 
       const token = await this.jwtService.generateToken(userProfile);
 
@@ -190,44 +196,6 @@ export class UserController {
         success: true,
         data: user,
         message: 'Succesfully approved account',
-      };
-    } catch (error) {
-      return {
-        success: false,
-        data: null,
-        message: error.message,
-      };
-    }
-  }
-  /* #endregion */
-
-  /* #region  - Edit user role [ADMIN]*/
-  @authenticate('jwt')
-  @authorize({
-    allowedRoles: [PermissionKeys.admin],
-    voters: [basicAuthorization],
-  })
-  @patch('/users/role/{userId}')
-  @response(204, responseSchema.updateRole)
-  async replaceRole(
-    @param.path.string('userId') id: string,
-    @requestBody(requestBodySchema.updateRole) user: User,
-  ) {
-    try {
-      const account = await this.userRepository.findById(id);
-      if (account?.permissions.includes('root')) {
-        throw new Error('Cannot edit permissions of root admin');
-      }
-
-      if (user.permissions.includes('root')) {
-        throw new Error('Impossible operation');
-      }
-
-      await this.userRepository.updateById(id, user);
-      return {
-        success: true,
-        data: user,
-        message: 'Succesfully updated role',
       };
     } catch (error) {
       return {
