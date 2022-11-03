@@ -28,6 +28,12 @@ export class Review extends Entity {
   })
   approved?: boolean;
 
+  @property({
+    type: 'date',
+    default: Date.now(),
+  })
+  datePosted?: string;
+
   @belongsTo(() => Movie)
   movieId: string;
 

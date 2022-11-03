@@ -7,7 +7,7 @@ import {
   get,
   param,
   patch,
-  post,
+  put,
   Request,
   requestBody,
   response,
@@ -47,7 +47,7 @@ export class ReviewController {
 
   /* #region  - Add review to movie [USER-byJWT]*/
   @authenticate('jwt')
-  @post('/reviews')
+  @put('/reviews')
   @response(200, responseSchema.addReview)
   async create(
     @requestBody(requestBodySchema.addReview)
@@ -62,8 +62,14 @@ export class ReviewController {
 
       const movieFound = await this.movieRepository.findById(review.movieId);
       if (!movieFound) throw new Error('Movie does not exist');
-      if (found.length) throw new Error('1 review per user only');
-      const created = await this.reviewRepository.create(review);
+
+      let created = {};
+      if (found.length) {
+        //update existing record
+        await this.reviewRepository.updateAll(review, {userId: review.userId});
+      } else {
+        created = await this.reviewRepository.create(review);
+      }
 
       return {
         success: true,
