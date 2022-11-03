@@ -107,11 +107,11 @@ export class UserController {
       if (!userProfile.approved) throw new Error('Account is not yet approved');
 
       const token = await this.jwtService.generateToken(userProfile);
-      const {id, email, name} = userProfile;
+      const {id, email, name, permissions} = userProfile;
 
       return {
         success: true,
-        data: {token, id, email, name},
+        data: {token, id, email, name, permissions},
         message: 'Successfully logged in',
       };
     } catch (error) {
