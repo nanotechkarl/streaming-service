@@ -13,7 +13,7 @@ import {
   response,
   RestBindings,
 } from '@loopback/rest';
-import {SecurityBindings, UserProfile} from '@loopback/security';
+import {SecurityBindings, securityId, UserProfile} from '@loopback/security';
 import {PermissionKeys} from '../authorization/Permission-keys';
 import {
   PasswordHasherBindings,
@@ -21,7 +21,7 @@ import {
   UserServiceBindings,
 } from '../keys';
 import {Review} from '../models';
-import {ReviewRepository} from '../repositories';
+import {MovieRepository, ReviewRepository} from '../repositories';
 import {basicAuthorization} from '../services/basic-authorizer.service';
 import {BcryptHasher} from '../services/hash.password';
 import {JWTService} from '../services/jwt-service';
@@ -41,10 +41,10 @@ export class ReviewController {
 
     @repository(ReviewRepository)
     public reviewRepository: ReviewRepository,
+    @repository(MovieRepository)
+    public movieRepository: MovieRepository,
   ) {}
 
-  //TODO make sure userId, movieId exist
-  //TODO utilize userobject inside jwt for crud needed
   /* #region  - Add review to movie [USER-byJWT]*/
   @authenticate('jwt')
   @post('/reviews')
@@ -54,6 +54,15 @@ export class ReviewController {
     review: Omit<Review, 'id'>,
   ) {
     try {
+      review.userId = this.user[securityId];
+      review.approved = false;
+      const found = await this.reviewRepository.find({
+        where: {and: [{userId: review.userId}, {movieId: review.movieId}]},
+      });
+
+      const movieFound = await this.movieRepository.findById(review.movieId);
+      if (!movieFound) throw new Error('Movie does not exist');
+      if (found.length) throw new Error('1 review per user only');
       const created = await this.reviewRepository.create(review);
 
       return {
@@ -77,6 +86,29 @@ export class ReviewController {
   async find() {
     try {
       const found = await this.reviewRepository.find();
+      return {
+        success: true,
+        data: found,
+        message: 'Succesfully fetched all reviews',
+      };
+    } catch (error) {
+      return {
+        success: false,
+        data: null,
+        message: error.message,
+      };
+    }
+  }
+  /* #endregion */
+
+  /* #region  - Get reviews of movie */
+  @get('/reviews/movie/{movieId}')
+  @response(200, responseSchema.getAll)
+  async findbyMovieId(@param.path.string('movieId') movieId: string) {
+    try {
+      const found = await this.reviewRepository.find({
+        where: {and: [{movieId}, {approved: true}]},
+      });
       return {
         success: true,
         data: found,

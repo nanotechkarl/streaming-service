@@ -11,6 +11,7 @@ import {
   Request,
   requestBody,
   response,
+  Response,
   RestBindings,
 } from '@loopback/rest';
 import {SecurityBindings, UserProfile} from '@loopback/security';
@@ -41,6 +42,7 @@ export class UserController {
     @inject(RestBindings.Http.REQUEST) private request: Request,
     @inject(PasswordHasherBindings.PASSWORD_HASHER)
     public hasher: BcryptHasher,
+    @inject(RestBindings.Http.RESPONSE) private res: Response,
 
     @repository(UserRepository)
     public userRepository: UserRepository,
@@ -105,13 +107,15 @@ export class UserController {
       if (!userProfile.approved) throw new Error('Account is not yet approved');
 
       const token = await this.jwtService.generateToken(userProfile);
+      const {id, email, name} = userProfile;
 
       return {
         success: true,
-        data: {token},
+        data: {token, id, email, name},
         message: 'Successfully logged in',
       };
     } catch (error) {
+      this.res.status(401);
       return {
         success: false,
         data: null,

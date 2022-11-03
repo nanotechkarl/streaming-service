@@ -49,11 +49,21 @@ export class MovieController {
   @response(200, responseSchema.getAll)
   async find() {
     try {
-      const users = await this.movieRepository.find({include: ['actors']});
+      //eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const movies: {[key: string]: any} = await this.movieRepository.find({
+        include: ['actors'],
+      });
+      //eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const moviesSorted = movies.sort((a: any, b: any) => {
+        const movieA = new Date(a.yearRelease);
+        const movieB = new Date(b.yearRelease);
+
+        return movieB.getTime() - movieA.getTime();
+      });
 
       return {
         success: true,
-        data: users,
+        data: moviesSorted,
         message: 'Succesfully fetch all movies',
       };
     } catch (error) {
@@ -67,7 +77,7 @@ export class MovieController {
   /* #endregion */
 
   /* #region  - Search movie by name */
-  @get('/movies/search/{title}')
+  @get('/movies/search/movie/{title}')
   @response(200, responseSchema.search)
   async findByName(@param.path.string('title') name: string) {
     try {
@@ -80,6 +90,28 @@ export class MovieController {
         success: true,
         data: found,
         message: 'Succesfully fetched movie/s',
+      };
+    } catch (error) {
+      return {
+        success: false,
+        data: null,
+        message: error.message,
+      };
+    }
+  }
+  /* #endregion */
+
+  /* #region  - Search movie by name */
+  @get('/movies/{movieId}')
+  @response(200, responseSchema.getById)
+  async findById(@param.path.string('movieId') movieId: string) {
+    try {
+      const found = await this.movieRepository.findById(movieId);
+
+      return {
+        success: true,
+        data: found,
+        message: 'Succesfully fetched movie',
       };
     } catch (error) {
       return {
@@ -104,6 +136,11 @@ export class MovieController {
     movie: Movie,
   ) {
     try {
+      const found = await this.movieRepository.find({
+        where: {title: {regexp: `/^${movie.title}/i`}},
+      });
+      if (found.length) throw new Error('Movie title already exists');
+
       const createdMovie = await this.movieRepository.create(movie);
 
       return {
