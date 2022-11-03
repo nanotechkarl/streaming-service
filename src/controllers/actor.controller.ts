@@ -20,7 +20,11 @@ import {
   UserServiceBindings,
 } from '../keys';
 import {Actor} from '../models';
-import {ActorRepository} from '../repositories';
+import {
+  ActorDetailsRepository,
+  ActorRepository,
+  MovieRepository,
+} from '../repositories';
 import {basicAuthorization} from '../services/basic-authorizer.service';
 import {BcryptHasher} from '../services/hash.password';
 import {JWTService} from '../services/jwt-service';
@@ -40,9 +44,12 @@ export class ActorController {
 
     @repository(ActorRepository)
     public actorRepository: ActorRepository,
+    @repository(MovieRepository)
+    public movieRepository: MovieRepository,
+    @repository(ActorDetailsRepository)
+    public actorDetailsRepository: ActorDetailsRepository,
   ) {}
 
-  //TODO check movieId and actorDetailsId if existing before create
   /* #region  - Add actor to movie [ADMIN]*/
   @authenticate('jwt')
   @authorize({
@@ -56,12 +63,21 @@ export class ActorController {
     actor: Omit<Actor, 'id'>,
   ) {
     try {
+      const foundMovie = await this.movieRepository.find({
+        where: {id: actor.movieId},
+      });
+      const foundActor = await this.actorDetailsRepository.find({
+        where: {id: actor.actorDetailsId},
+      });
+      if (!foundMovie.length) throw new Error('No id matched the movies');
+      if (!foundActor.length) throw new Error('No id matched the actor');
+
       const created = this.actorRepository.create(actor);
 
       return {
         success: true,
         data: created,
-        message: 'Succesfully deleted movie',
+        message: 'Succesfully added actor to movie',
       };
     } catch (error) {
       return {

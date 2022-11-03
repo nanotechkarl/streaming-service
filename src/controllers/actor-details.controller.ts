@@ -59,6 +59,15 @@ export class ActorDetailsController {
     actorDetails: Omit<ActorDetails, 'id'>,
   ) {
     try {
+      const found = await this.actorDetailsRepository.find({
+        where: {
+          and: [
+            {firstName: actorDetails.firstName},
+            {lastName: actorDetails.lastName},
+          ],
+        },
+      });
+      if (found.length) throw new Error('Actor already exists');
       const actor = await this.actorDetailsRepository.create(actorDetails);
 
       return {
