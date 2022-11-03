@@ -66,7 +66,9 @@ export class ReviewController {
       let created = {};
       if (found.length) {
         //update existing record
-        await this.reviewRepository.updateAll(review, {userId: review.userId});
+        await this.reviewRepository.updateAll(review, {
+          and: [{userId: review.userId}, {movieId: review.movieId}],
+        });
       } else {
         created = await this.reviewRepository.create(review);
       }
