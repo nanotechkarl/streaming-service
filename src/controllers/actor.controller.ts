@@ -72,6 +72,18 @@ export class ActorController {
       if (!foundMovie.length) throw new Error('No id matched the movies');
       if (!foundActor.length) throw new Error('No id matched the actor');
 
+      const foundConnection = await this.actorRepository.find({
+        where: {
+          and: [
+            {actorDetailsId: actor.actorDetailsId},
+            {movieId: actor.movieId},
+          ],
+        },
+      });
+      if (foundConnection.length) {
+        throw new Error('Actor already exist in the movie');
+      }
+
       const created = this.actorRepository.create(actor);
 
       return {
