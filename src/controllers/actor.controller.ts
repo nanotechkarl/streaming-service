@@ -102,15 +102,24 @@ export class ActorController {
   /* #endregion */
 
   /* #region  - Get all actors of movie */
-  @get('/actors')
+  @get('/actors/{movieId}')
   @response(200, responseSchema.getAll)
-  async find() {
+  async find(@param.path.string('movieId') movieId: string) {
     try {
-      const actors = await this.actorRepository.find();
+      const actors = await this.actorRepository.find({where: {movieId}});
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const actorsId = actors.map((obj: any) => obj.actorDetailsId);
+      const actorDetails = await Promise.all(
+        actorsId.map(async el => {
+          return this.actorDetailsRepository.findById(el);
+        }),
+      );
+
       return {
         success: true,
-        data: actors,
-        message: 'Succesfully deleted movie',
+        data: actorDetails,
+        message: 'Succesfully fetch actors by movie',
       };
     } catch (error) {
       return {

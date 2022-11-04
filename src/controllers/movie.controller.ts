@@ -101,7 +101,7 @@ export class MovieController {
   }
   /* #endregion */
 
-  /* #region  - Search movie by name */
+  /* #region  - Get movie by id */
   @get('/movies/{movieId}')
   @response(200, responseSchema.getById)
   async findById(@param.path.string('movieId') movieId: string) {

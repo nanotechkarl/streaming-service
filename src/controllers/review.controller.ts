@@ -55,7 +55,8 @@ export class ReviewController {
   ) {
     try {
       review.userId = this.user[securityId];
-      review.approved = false;
+      //TODO TEMP APPROVAL
+      review.approved = true;
       const found = await this.reviewRepository.find({
         where: {and: [{userId: review.userId}, {movieId: review.movieId}]},
       });
