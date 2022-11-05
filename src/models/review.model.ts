@@ -34,6 +34,12 @@ export class Review extends Entity {
   })
   datePosted?: string;
 
+  @property({
+    type: 'string',
+    default: 'Private User',
+  })
+  name?: string;
+
   @belongsTo(() => Movie)
   movieId: string;
 

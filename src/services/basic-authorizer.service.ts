@@ -30,7 +30,6 @@ export async function basicAuthorization(
       name: user.name,
       permissions: user.permissions,
     };
-    console.log('currentUser :', currentUser);
   } else {
     return AuthorizationDecision.DENY;
   }

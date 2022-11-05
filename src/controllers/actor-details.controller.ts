@@ -95,7 +95,29 @@ export class ActorDetailsController {
       return {
         success: true,
         data: actors,
-        message: 'Succesfully created actor',
+        message: 'Succesfully fetched actor',
+      };
+    } catch (error) {
+      return {
+        success: false,
+        data: null,
+        message: error.message,
+      };
+    }
+  }
+  /* #endregion */
+
+  /* #region  - Get all actors */
+  @get('/actor-details/{actorId}')
+  @response(200, responseSchema.getAll)
+  async findActor(@param.path.string('actorId') actorId: string) {
+    try {
+      const actors = await this.actorDetailsRepository.findById(actorId);
+
+      return {
+        success: true,
+        data: actors,
+        message: 'Succesfully fetched actor',
       };
     } catch (error) {
       return {

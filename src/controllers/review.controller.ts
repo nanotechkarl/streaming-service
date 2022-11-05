@@ -45,7 +45,7 @@ export class ReviewController {
     public movieRepository: MovieRepository,
   ) {}
 
-  /* #region  - Add review to movie [USER-byJWT]*/
+  /* #region  - Add/update review to movie [USER-byJWT]*/
   @authenticate('jwt')
   @put('/reviews')
   @response(200, responseSchema.addReview)
@@ -55,8 +55,9 @@ export class ReviewController {
   ) {
     try {
       review.userId = this.user[securityId];
-      //TODO TEMP APPROVAL
-      review.approved = true;
+      review.approved = false;
+      review.datePosted = new Date().toDateString();
+
       const found = await this.reviewRepository.find({
         where: {and: [{userId: review.userId}, {movieId: review.movieId}]},
       });
@@ -67,7 +68,7 @@ export class ReviewController {
       let created = {};
       if (found.length) {
         //update existing record
-        await this.reviewRepository.updateAll(review, {
+        created = await this.reviewRepository.updateAll(review, {
           and: [{userId: review.userId}, {movieId: review.movieId}],
         });
       } else {
@@ -77,7 +78,7 @@ export class ReviewController {
       return {
         success: true,
         data: created,
-        message: 'Succesfully added review',
+        message: 'Succesfully added/updated review',
       };
     } catch (error) {
       return {
@@ -89,16 +90,23 @@ export class ReviewController {
   }
   /* #endregion */
 
-  /* #region  - Get all reviews */
-  @get('/reviews')
+  /* #region  - Get all pending reviews */
+  @authenticate('jwt')
+  @authorize({
+    allowedRoles: [PermissionKeys.admin],
+    voters: [basicAuthorization],
+  })
+  @get('/reviews/pending')
   @response(200, responseSchema.getAll)
-  async find() {
+  async findPending() {
     try {
-      const found = await this.reviewRepository.find();
+      const found = await this.reviewRepository.find({
+        where: {approved: false},
+      });
       return {
         success: true,
         data: found,
-        message: 'Succesfully fetched all reviews',
+        message: 'Succesfully fetched pending reviews',
       };
     } catch (error) {
       return {
@@ -133,7 +141,7 @@ export class ReviewController {
   }
   /* #endregion */
 
-  /* #region  - Get review by userId [ADMIN]*/
+  /* #region  - Get reviews by userId [ADMIN]*/
   @authenticate('jwt')
   @authorize({
     allowedRoles: [PermissionKeys.admin],
@@ -148,7 +156,7 @@ export class ReviewController {
       return {
         success: true,
         data: found,
-        message: 'Succesfully fetched all reviews',
+        message: 'Succesfully fetched reviews',
       };
     } catch (error) {
       return {
@@ -160,7 +168,33 @@ export class ReviewController {
   }
   /* #endregion */
 
-  /* #region  - Edit review [USER-byJWT]*/
+  /* #region  - Get review by self and movie id [USER-byJWT]*/
+  @authenticate('jwt')
+  @get('/reviews/{movieId}/myReview')
+  @response(200, responseSchema.getByUserId)
+  async findByTwoId(@param.path.string('movieId') movieId: string) {
+    try {
+      const userId = this.user[securityId];
+      const found = await this.reviewRepository.find({
+        where: {and: [{userId}, {movieId}]},
+      });
+
+      return {
+        success: true,
+        data: found[0],
+        message: 'Succesfully fetched review',
+      };
+    } catch (error) {
+      return {
+        success: false,
+        data: null,
+        message: error.message,
+      };
+    }
+  }
+  /* #endregion */
+
+  /* #region  - Edit review(for review approval) [USER-byJWT]*/
   @authenticate('jwt')
   @patch('/reviews/{id}')
   @response(200, responseSchema.updateReview)

@@ -131,6 +131,38 @@ export class ActorController {
   }
   /* #endregion */
 
+  /* #region  - Get all movies of actor */
+  @get('/actor/movies/{actorDetailsId}')
+  @response(200, responseSchema.getAll)
+  async findMoviesByActor(
+    @param.path.string('actorDetailsId') actorDetailsId: string,
+  ) {
+    try {
+      const actors = await this.actorRepository.find({where: {actorDetailsId}});
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const movieIdArray = actors.map((obj: any) => obj.movieId);
+      const actorDetails = await Promise.all(
+        movieIdArray.map(async el => {
+          return this.movieRepository.findById(el);
+        }),
+      );
+
+      return {
+        success: true,
+        data: actorDetails,
+        message: 'Succesfully fetch actors by movie',
+      };
+    } catch (error) {
+      return {
+        success: false,
+        data: null,
+        message: error.message,
+      };
+    }
+  }
+  /* #endregion */
+
   /* #region  - Delete actor from the movie [ADMIN]*/
   @authenticate('jwt')
   @authorize({
