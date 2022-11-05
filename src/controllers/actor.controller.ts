@@ -129,7 +129,6 @@ export class ActorController {
       };
     }
   }
-
   /* #endregion */
 
   /* #region  - Delete actor from the movie [ADMIN]*/

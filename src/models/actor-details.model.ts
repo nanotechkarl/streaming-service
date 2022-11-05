@@ -34,6 +34,12 @@ export class ActorDetails extends Entity {
   })
   age: number;
 
+  @property({
+    type: 'string',
+    required: true,
+  })
+  imgUrl: string;
+
   @hasOne(() => Actor)
   actor?: Actor;
 

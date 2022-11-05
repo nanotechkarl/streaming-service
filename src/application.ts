@@ -25,7 +25,6 @@ import {MySequence} from './sequence';
 import {BcryptHasher} from './services/hash.password';
 import {JWTService} from './services/jwt-service';
 import {MyUserService} from './services/user-service';
-
 export {ApplicationConfig};
 
 export class StreamingServiceApplication extends BootMixin(

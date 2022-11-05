@@ -14,6 +14,7 @@ import {
   RestBindings,
 } from '@loopback/rest';
 import {SecurityBindings, UserProfile} from '@loopback/security';
+import * as _ from 'lodash';
 import {PermissionKeys} from '../authorization/Permission-keys';
 import {
   PasswordHasherBindings,
@@ -21,7 +22,11 @@ import {
   UserServiceBindings,
 } from '../keys';
 import {Movie} from '../models';
-import {MovieRepository} from '../repositories';
+import {
+  ActorDetailsRepository,
+  ActorRepository,
+  MovieRepository,
+} from '../repositories';
 import {basicAuthorization} from '../services/basic-authorizer.service';
 import {BcryptHasher} from '../services/hash.password';
 import {JWTService} from '../services/jwt-service';
@@ -42,6 +47,10 @@ export class MovieController {
 
     @repository(MovieRepository)
     public movieRepository: MovieRepository,
+    @repository(ActorDetailsRepository)
+    public actorDetailsRepository: ActorDetailsRepository,
+    @repository(ActorRepository)
+    public actorRepository: ActorRepository,
   ) {}
 
   /* #region  - Get all movies */
@@ -81,7 +90,9 @@ export class MovieController {
   @response(200, responseSchema.search)
   async findByName(@param.path.string('title') name: string) {
     try {
-      const pattern = new RegExp('^' + name + '.*', 'i');
+      // const pattern = new RegExp('^' + name + '.*', 'i');
+
+      const pattern = new RegExp(name, 'i');
       const found = await this.movieRepository.find({
         where: {title: {regexp: pattern}},
       });
@@ -90,6 +101,58 @@ export class MovieController {
         success: true,
         data: found,
         message: 'Succesfully fetched movie/s',
+      };
+    } catch (error) {
+      return {
+        success: false,
+        data: null,
+        message: error.message,
+      };
+    }
+  }
+  /* #endregion */
+
+  /* #region  - Search actor */
+  @get('/movies/search/actor/{name}')
+  @response(200, responseSchema.search)
+  async findByActor(@param.path.string('name') name: string) {
+    try {
+      const nameSplit = name.split(' ');
+
+      const search = await Promise.all(
+        nameSplit.map(async (char: string) => {
+          const pattern = new RegExp(char, 'i');
+          const find = await this.actorDetailsRepository.find({
+            where: {
+              or: [
+                {firstName: {regexp: pattern}},
+                {lastName: {regexp: pattern}},
+              ],
+            },
+          });
+          return find;
+        }),
+      );
+
+      const arr = _.flatten(search).filter(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (value: any, index, self) => {
+          return (
+            index ===
+            self.findIndex(
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              (t: any) =>
+                t.firstName === value.firstName &&
+                t.lastName === value.lastName,
+            )
+          );
+        },
+      );
+
+      return {
+        success: true,
+        data: arr,
+        message: 'Succesfully fetched movie/s by actor',
       };
     } catch (error) {
       return {

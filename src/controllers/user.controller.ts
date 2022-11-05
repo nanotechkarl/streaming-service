@@ -92,7 +92,7 @@ export class UserController {
   }
   /* #endregion */
 
-  /* #region  - Login await approval*/
+  /* #region  - Login(await approval on first login)*/
   @post('/users/login')
   @response(200, responseSchema.login)
   async login(

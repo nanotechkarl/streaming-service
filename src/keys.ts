@@ -3,10 +3,11 @@ import {BindingKey} from '@loopback/core';
 import {User} from './models';
 import {Credentials} from './repositories/user.repository';
 import {PasswordHasher} from './services/hash.password';
+require('dotenv').config();
 
 export namespace TokenServiceConstants {
-  export const TOKEN_SECRET_VALUE = '138asda8213';
-  export const TOKEN_EXPIRES_IN_VALUE = '7h';
+  export const TOKEN_SECRET_VALUE = process.env.TOKEN_SECRET ?? '';
+  export const TOKEN_EXPIRES_IN_VALUE = process.env.TOKEN_EXPIRE ?? '';
 }
 export namespace TokenServiceBindings {
   export const TOKEN_SECRET = BindingKey.create<string>(
@@ -21,9 +22,8 @@ export namespace TokenServiceBindings {
 }
 
 export namespace PasswordHasherBindings {
-  export const PASSWORD_HASHER = BindingKey.create<PasswordHasher>(
-    'services.hasher',
-  );
+  export const PASSWORD_HASHER =
+    BindingKey.create<PasswordHasher>('services.hasher');
   export const ROUNDS = BindingKey.create<number>('services.hasher.rounds');
 }
 
