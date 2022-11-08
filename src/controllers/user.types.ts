@@ -33,6 +33,7 @@ export const requestBodySchema = {
             'firstName',
             'lastName',
             'email',
+            'permissions',
           ],
         }),
       },
@@ -42,7 +43,23 @@ export const requestBodySchema = {
     content: {
       'application/json': {
         schema: getModelSchemaRef(User, {
-          exclude: ['id', 'password', 'firstName', 'lastName', 'email'],
+          exclude: [
+            'id',
+            'password',
+            'firstName',
+            'lastName',
+            'email',
+            'permissions',
+          ],
+        }),
+      },
+    },
+  },
+  updateUser: {
+    content: {
+      'application/json': {
+        schema: getModelSchemaRef(User, {
+          exclude: ['id', 'password', 'email'],
         }),
       },
     },
@@ -50,8 +67,27 @@ export const requestBodySchema = {
 };
 
 export const responseSchema = {
+  updateUser: {
+    description: 'Update all users details',
+    content: {
+      'application/json': {
+        schema: {
+          type: 'object',
+          properties: {
+            success: {
+              type: 'boolean',
+            },
+            data: getModelSchemaRef(User, {}),
+            message: {
+              type: 'string',
+            },
+          },
+        },
+      },
+    },
+  },
   getAll: {
-    description: 'Get all users details',
+    description: 'Update all users details',
     content: {
       'application/json': {
         schema: {

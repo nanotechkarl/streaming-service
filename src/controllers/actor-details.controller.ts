@@ -25,7 +25,11 @@ import {authenticate} from '@loopback/authentication';
 import {authorize} from '@loopback/authorization';
 import {PermissionKeys} from '../authorization/Permission-keys';
 import {ActorDetails} from '../models';
-import {ActorDetailsRepository, ActorRepository} from '../repositories';
+import {
+  ActorDetailsRepository,
+  ActorRepository,
+  MovieRepository,
+} from '../repositories';
 import {basicAuthorization} from '../services/basic-authorizer.service';
 import {requestBodySchema, responseSchema} from './actor-details.types';
 export class ActorDetailsController {
@@ -40,6 +44,8 @@ export class ActorDetailsController {
     @inject(PasswordHasherBindings.PASSWORD_HASHER)
     public hasher: BcryptHasher,
 
+    @repository(MovieRepository)
+    public movieRepository: MovieRepository,
     @repository(ActorDetailsRepository)
     public actorDetailsRepository: ActorDetailsRepository,
     @repository(ActorRepository)
@@ -92,9 +98,20 @@ export class ActorDetailsController {
     try {
       const actors = await this.actorDetailsRepository.find();
 
+      const actorDetails = await Promise.all(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        actors.map(async (el: any) => {
+          const collection = await this.actorRepository.find({
+            where: {actorDetailsId: el.id},
+          });
+
+          return {...el, movies: collection};
+        }),
+      );
+
       return {
         success: true,
-        data: actors,
+        data: actorDetails,
         message: 'Succesfully fetched actor',
       };
     } catch (error) {
@@ -107,7 +124,7 @@ export class ActorDetailsController {
   }
   /* #endregion */
 
-  /* #region  - Get all actors */
+  /* #region  - Get actors */
   @get('/actor-details/{actorId}')
   @response(200, responseSchema.getAll)
   async findActor(@param.path.string('actorId') actorId: string) {

@@ -23,7 +23,7 @@ import {
   UserServiceBindings,
 } from '../keys';
 import {User} from '../models';
-import {UserRepository} from '../repositories';
+import {ReviewRepository, UserRepository} from '../repositories';
 import {validateCredentials} from '../services';
 import {basicAuthorization} from '../services/basic-authorizer.service';
 import {BcryptHasher} from '../services/hash.password';
@@ -46,6 +46,8 @@ export class UserController {
 
     @repository(UserRepository)
     public userRepository: UserRepository,
+    @repository(ReviewRepository)
+    public reviewRepository: ReviewRepository,
   ) {}
 
   /* #region  - Register */
@@ -200,6 +202,37 @@ export class UserController {
         success: true,
         data: user,
         message: 'Succesfully approved account',
+      };
+    } catch (error) {
+      return {
+        success: false,
+        data: null,
+        message: error.message,
+      };
+    }
+  }
+  /* #endregion */
+
+  /* #region  - Edit user [ADMIN]*/
+  @authenticate('jwt')
+  @authorize({
+    allowedRoles: [PermissionKeys.admin],
+    voters: [basicAuthorization],
+  })
+  @patch('/users/{userId}')
+  @response(204, responseSchema.updateUser)
+  async editUser(
+    @param.path.string('userId') id: string,
+    @requestBody(requestBodySchema.updateUser) user: User,
+  ) {
+    try {
+      await this.userRepository.updateById(id, user);
+      const name = user.firstName + ' ' + user.lastName;
+      await this.reviewRepository.updateAll({name}, {userId: id});
+      return {
+        success: true,
+        data: user,
+        message: 'Succesfully updated user',
       };
     } catch (error) {
       return {
