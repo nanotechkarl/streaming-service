@@ -1,4 +1,4 @@
-# streaming-service
+# streaming-service(BackEnd POC)
 
 # FrontEnd link: https://github.com/nanotechkarl/streaming-app
 
