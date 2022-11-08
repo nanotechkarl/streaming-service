@@ -5,7 +5,9 @@ This application is generated using [LoopBack 4 CLI](https://loopback.io/doc/en/
 
 ### env sample
 TOKEN_SECRET=MYSECRET
+
 TOKEN_EXPIRE=30d
+
 
 ## Install dependencies
 
