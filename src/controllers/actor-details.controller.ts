@@ -124,7 +124,7 @@ export class ActorDetailsController {
   }
   /* #endregion */
 
-  /* #region  - Get actors */
+  /* #region  - Get actors id */
   @get('/actor-details/{actorId}')
   @response(200, responseSchema.getAll)
   async findActor(@param.path.string('actorId') actorId: string) {

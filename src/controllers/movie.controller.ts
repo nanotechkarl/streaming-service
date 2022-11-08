@@ -90,8 +90,6 @@ export class MovieController {
   @response(200, responseSchema.search)
   async findByName(@param.path.string('title') name: string) {
     try {
-      // const pattern = new RegExp('^' + name + '.*', 'i');
-
       const pattern = new RegExp(name, 'i');
       const found = await this.movieRepository.find({
         where: {title: {regexp: pattern}},
