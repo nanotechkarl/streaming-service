@@ -31,7 +31,7 @@ describe('UserController', () => {
     await reviewRepo.deleteAll();
   });
 
-  context('As admin', () => {
+  describe('As admin', () => {
     it('Should creates root admin on first signup', async () => {
       const userData = givenRootAdmin();
       const response = await client
@@ -98,7 +98,7 @@ describe('UserController', () => {
     });
   });
 
-  context('As User', () => {
+  describe('As User', () => {
     it('Should create a user that is not approved', async () => {
       const userData = givenUser();
       const response = await client
@@ -135,4 +135,3 @@ describe('UserController', () => {
     reviewRepo = await app.getRepository(ReviewRepository);
   }
 });
-1;
