@@ -1,4 +1,3 @@
-import {inject} from '@loopback/core';
 import {repository} from '@loopback/repository';
 import {
   del,
@@ -6,20 +5,9 @@ import {
   param,
   patch,
   post,
-  Request,
   requestBody,
   response,
-  RestBindings,
 } from '@loopback/rest';
-import {SecurityBindings, UserProfile} from '@loopback/security';
-import {
-  PasswordHasherBindings,
-  TokenServiceBindings,
-  UserServiceBindings,
-} from '../keys';
-import {BcryptHasher} from '../services/hash.password';
-import {JWTService} from '../services/jwt-service';
-import {MyUserService} from '../services/user-service';
 
 import {authenticate} from '@loopback/authentication';
 import {authorize} from '@loopback/authorization';
@@ -34,16 +22,6 @@ import {basicAuthorization} from '../services/basic-authorizer.service';
 import {requestBodySchema, responseSchema} from './actor-details.types';
 export class ActorDetailsController {
   constructor(
-    @inject(SecurityBindings.USER, {optional: true})
-    public user: UserProfile,
-    @inject(TokenServiceBindings.TOKEN_SERVICE)
-    public jwtService: JWTService,
-    @inject(UserServiceBindings.USER_SERVICE)
-    public userService: MyUserService,
-    @inject(RestBindings.Http.REQUEST) private request: Request,
-    @inject(PasswordHasherBindings.PASSWORD_HASHER)
-    public hasher: BcryptHasher,
-
     @repository(MovieRepository)
     public movieRepository: MovieRepository,
     @repository(ActorDetailsRepository)

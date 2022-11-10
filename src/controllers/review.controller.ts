@@ -8,36 +8,19 @@ import {
   param,
   patch,
   put,
-  Request,
   requestBody,
   response,
-  RestBindings,
 } from '@loopback/rest';
 import {SecurityBindings, securityId, UserProfile} from '@loopback/security';
 import {PermissionKeys} from '../authorization/Permission-keys';
-import {
-  PasswordHasherBindings,
-  TokenServiceBindings,
-  UserServiceBindings,
-} from '../keys';
 import {Review} from '../models';
 import {MovieRepository, ReviewRepository} from '../repositories';
 import {basicAuthorization} from '../services/basic-authorizer.service';
-import {BcryptHasher} from '../services/hash.password';
-import {JWTService} from '../services/jwt-service';
-import {MyUserService} from '../services/user-service';
 import {requestBodySchema, responseSchema} from './review.types';
 export class ReviewController {
   constructor(
     @inject(SecurityBindings.USER, {optional: true})
     public user: UserProfile,
-    @inject(TokenServiceBindings.TOKEN_SERVICE)
-    public jwtService: JWTService,
-    @inject(UserServiceBindings.USER_SERVICE)
-    public userService: MyUserService,
-    @inject(RestBindings.Http.REQUEST) private request: Request,
-    @inject(PasswordHasherBindings.PASSWORD_HASHER)
-    public hasher: BcryptHasher,
 
     @repository(ReviewRepository)
     public reviewRepository: ReviewRepository,

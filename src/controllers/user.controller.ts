@@ -8,7 +8,6 @@ import {
   param,
   patch,
   post,
-  Request,
   requestBody,
   response,
   Response,
@@ -39,7 +38,6 @@ export class UserController {
     public jwtService: JWTService,
     @inject(UserServiceBindings.USER_SERVICE)
     public userService: MyUserService,
-    @inject(RestBindings.Http.REQUEST) private request: Request,
     @inject(PasswordHasherBindings.PASSWORD_HASHER)
     public hasher: BcryptHasher,
     @inject(RestBindings.Http.RESPONSE) private res: Response,
