@@ -1,7 +1,15 @@
-# streaming-service
+# streaming-service(BackEnd POC)
+
+# FrontEnd link: https://github.com/nanotechkarl/streaming-app
 
 This application is generated using [LoopBack 4 CLI](https://loopback.io/doc/en/lb4/Command-line-interface.html) with the
 [initial project layout](https://loopback.io/doc/en/lb4/Loopback-application-layout.html).
+
+### env sample
+TOKEN_SECRET=MYSECRET
+
+TOKEN_EXPIRE=30d
+
 
 ## Install dependencies
 
@@ -26,7 +34,7 @@ npm start
 
 You can also run `node .` to skip the build step.
 
-Open http://127.0.0.1:3000 in your browser.
+Open http://localhost:3001 in your browser.
 
 ## Rebuild the project
 
