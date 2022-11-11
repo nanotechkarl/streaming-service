@@ -22,7 +22,7 @@
     "eslint": "lb-eslint --report-unused-disable-directives .",
     "eslint:fix": "npm run eslint -- --fix",
     "pretest": "npm run rebuild",
-    "test": "lb-mocha --allow-console-logs \"dist/__tests__\"",
+    "test": "nyc lb-mocha --allow-console-logs \"dist/__tests__\"",
     "posttest": "npm run lint",
     "test:dev": "lb-mocha --allow-console-logs dist/__tests__/**/*.js && npm run posttest",
     "docker:build": "docker build -t streaming-service .",
@@ -61,10 +61,12 @@
     "@loopback/service-proxy": "^5.0.3",
     "bcryptjs": "^2.4.3",
     "bson": "^4.7.0",
+    "dotenv": "^16.0.3",
     "isemail": "^3.2.0",
     "jsonwebtoken": "^8.5.1",
     "loopback-connector-mongodb": "^5.6.0",
     "nodemon": "^2.0.20",
+    "nyc": "^15.1.0",
     "tslib": "^2.0.0"
   },
   "devDependencies": {

@@ -3,9 +3,10 @@ import _ from 'lodash';
 import {StreamingServiceApplication} from '../../application';
 import {ReviewRepository, UserRepository} from '../../repositories';
 import {
-  givenRootAdmin,
+  createAdmin,
   givenRunningApplicationWithCustomConfiguration,
   givenUser,
+  login,
 } from '../helpers';
 
 describe('UserController', () => {
@@ -33,49 +34,11 @@ describe('UserController', () => {
 
   describe('As admin', () => {
     it('Should creates root admin on first signup', async () => {
-      const userData = givenRootAdmin();
-      const response = await client
-        .post(`/users/register`)
-        .send(userData)
-        .expect(200);
-
-      userData.permissions = ['root', 'admin'];
-      userData.approved = true;
-      userData.id = '1';
-      const data = _.omit(userData, 'password');
-      const expected = {
-        success: true,
-        message: 'Successfully registered',
-        data,
-      };
-      expect(response.body).to.containEql(expected);
-      const created = await userRepo.findById(response.body.data.id, {
-        fields: {password: false},
-      });
-
-      expect(toJSON(created)).to.deepEqual({
-        ...expected.data,
-      });
+      await createAdmin(client, userRepo);
     });
 
     it('Should login as root admin', async () => {
-      const userData = givenRootAdmin();
-      const reqBody = _.omit(userData, [
-        'firstName',
-        'lastName',
-        'permissions',
-      ]);
-      const response = await client
-        .post(`/users/login`)
-        .send(reqBody)
-        .expect(200);
-
-      const expected = {
-        message: 'Successfully logged in',
-      };
-
-      expect(response.body.message).to.containEql(expected.message);
-      adminToken = response.body.data.token;
+      adminToken = await login(client, 'admin');
     });
 
     it('Should get logged in details and test token if working', async () => {
