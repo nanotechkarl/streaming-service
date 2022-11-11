@@ -17,11 +17,8 @@ describe('MovieController', () => {
   let app: StreamingServiceApplication;
   let client: Client;
   let movieRepo: MovieRepository;
-  let actorRepo: ActorRepository;
-  let actorDetailsRepo: ActorDetailsRepository;
   let userRepo: UserRepository;
   let adminToken = '';
-  // let token: '';
 
   before(async () => {
     app = await givenRunningApplicationWithCustomConfiguration();
