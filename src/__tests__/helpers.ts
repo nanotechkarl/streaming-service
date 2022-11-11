@@ -164,3 +164,25 @@ export function givenActor(actor?: Partial<ActorDetails>) {
   );
   return new ActorDetails(data);
 }
+
+export async function createMovie(client: Client, adminToken: string) {
+  const movieData = givenMovie();
+  const response = await client
+    .post(`/movies`)
+    .set({Authorization: `Bearer ${adminToken}`})
+    .send(movieData)
+    .expect(200);
+
+  return response.body.data.id;
+}
+
+export async function createActor(client: Client, adminToken: string) {
+  const actorData = givenActor();
+  const response = await client
+    .post(`/actor-details`)
+    .set({Authorization: `Bearer ${adminToken}`})
+    .send(actorData)
+    .expect(200);
+
+  return response.body.data.id;
+}
