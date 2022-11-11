@@ -1,11 +1,6 @@
 import {Client, createRestAppClient, expect, toJSON} from '@loopback/testlab';
 import {StreamingServiceApplication} from '../../application';
-import {
-  ActorDetailsRepository,
-  ActorRepository,
-  MovieRepository,
-  UserRepository,
-} from '../../repositories';
+import {MovieRepository, UserRepository} from '../../repositories';
 import {
   createAdmin,
   givenMovie,
@@ -27,8 +22,6 @@ describe('MovieController', () => {
 
   before(givenUserRepository);
   before(givenMovieRepository);
-  before(givenActorRepository);
-  before(givenActorDetailsRepository);
   before(() => {
     client = createRestAppClient(app);
   });
@@ -104,14 +97,6 @@ describe('MovieController', () => {
 
   async function givenMovieRepository() {
     movieRepo = await app.getRepository(MovieRepository);
-  }
-
-  async function givenActorRepository() {
-    actorRepo = await app.getRepository(ActorRepository);
-  }
-
-  async function givenActorDetailsRepository() {
-    actorDetailsRepo = await app.getRepository(ActorDetailsRepository);
   }
 
   async function givenUserRepository() {
