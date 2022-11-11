@@ -1,7 +1,7 @@
 import {Client, expect, givenHttpServerConfig, toJSON} from '@loopback/testlab';
 import * as _ from 'lodash';
 import {StreamingServiceApplication} from '../application';
-import {Movie, User} from '../models';
+import {ActorDetails, Movie, User} from '../models';
 import {
   ActorDetailsRepository,
   ActorRepository,
@@ -149,4 +149,18 @@ export function givenMovie(movie?: Partial<Movie>) {
     movie,
   );
   return new Movie(data);
+}
+
+export function givenActor(actor?: Partial<ActorDetails>) {
+  const data = Object.assign(
+    {
+      firstName: 'Actor',
+      lastName: 'Actress',
+      imgUrl: 'testImageURL',
+      age: 12,
+      gender: 'male',
+    },
+    actor,
+  );
+  return new ActorDetails(data);
 }

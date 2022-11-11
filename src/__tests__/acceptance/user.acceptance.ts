@@ -15,7 +15,6 @@ describe('UserController', () => {
   let userRepo: UserRepository;
   let reviewRepo: ReviewRepository;
   let adminToken = '';
-  // let token: '';
 
   before(async () => {
     app = await givenRunningApplicationWithCustomConfiguration();
@@ -32,7 +31,7 @@ describe('UserController', () => {
     await reviewRepo.deleteAll();
   });
 
-  describe('As admin', () => {
+  context('As admin', () => {
     it('Should creates root admin on first signup', async () => {
       await createAdmin(client, userRepo);
     });
@@ -61,7 +60,7 @@ describe('UserController', () => {
     });
   });
 
-  describe('As User', () => {
+  context('As User', () => {
     it('Should create a user that is not approved', async () => {
       const userData = givenUser();
       const response = await client

@@ -27,10 +27,12 @@ describe('MovieController', () => {
   });
 
   context('As Admin', () => {
-    it('Should create movie', async () => {
+    before(async () => {
       await createAdmin(client, userRepo);
       adminToken = await login(client, 'admin');
+    });
 
+    it('Should create movie', async () => {
       const movieData = givenMovie();
       const response = await client
         .post(`/movies`)
