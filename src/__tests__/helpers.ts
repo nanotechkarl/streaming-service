@@ -1,7 +1,7 @@
 import {Client, expect, givenHttpServerConfig, toJSON} from '@loopback/testlab';
 import * as _ from 'lodash';
 import {StreamingServiceApplication} from '../application';
-import {ActorDetails, Movie, User} from '../models';
+import {ActorDetails, Movie, Review, User} from '../models';
 import {
   ActorDetailsRepository,
   ActorRepository,
@@ -185,4 +185,42 @@ export async function createActor(client: Client, adminToken: string) {
     .expect(200);
 
   return response.body.data.id;
+}
+
+export async function createUser(client: Client) {
+  const userData = givenUser();
+  const response = await client
+    .post(`/users/register`)
+    .send(userData)
+    .expect(200);
+
+  return response.body.data.id;
+}
+
+export async function approveUser(
+  client: Client,
+  adminToken: string,
+  userId: string,
+) {
+  const response = await client
+    .patch(`/users/approval/${userId}`)
+    .set({Authorization: `Bearer ${adminToken}`})
+    .send({approved: true})
+    .expect(200);
+
+  return response.body;
+}
+
+export function givenReview(review?: Partial<Review>) {
+  const data = Object.assign(
+    {
+      message: 'hello',
+      rating: 5,
+      datePosted: '2022-11-11T05:54:31.959Z',
+      name: 'test doe',
+      movieId: '1',
+    },
+    review,
+  );
+  return new Review(data);
 }

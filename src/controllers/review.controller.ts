@@ -73,7 +73,7 @@ export class ReviewController {
   }
   /* #endregion */
 
-  /* #region  - Get all pending reviews */
+  /* #region  - Get all pending reviews [ADMIN]*/
   @authenticate('jwt')
   @authorize({
     allowedRoles: [PermissionKeys.admin],

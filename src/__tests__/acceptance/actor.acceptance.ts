@@ -9,7 +9,7 @@ import {
   login,
 } from '../helpers';
 
-describe('ActorDetailsController', () => {
+describe('ActorController', () => {
   let app: StreamingServiceApplication;
   let client: Client;
   let userRepo: UserRepository;
