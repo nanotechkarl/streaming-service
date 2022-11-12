@@ -250,6 +250,8 @@ export class MovieController {
 
       await this.movieRepository.deleteById(id);
       await this.movieRepository.actors(id).delete(); //delete all actors ref
+      await this.movieRepository.reviews(id).delete();
+
       return {
         success: true,
         data: {id},
