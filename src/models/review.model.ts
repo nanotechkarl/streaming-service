@@ -40,6 +40,12 @@ export class Review extends Entity {
   })
   name?: string;
 
+  @property({
+    type: 'string',
+    default: 'movie',
+  })
+  movieTitle?: string;
+
   @belongsTo(() => Movie)
   movieId: string;
 
