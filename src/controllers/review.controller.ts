@@ -203,7 +203,7 @@ export class ReviewController {
   }
   /* #endregion */
 
-  /* #region  - Delete review [USER-byJWT]*/
+  /* #region  - Delete review [ADMIN/USER]*/
   @authenticate('jwt')
   @del('/reviews/{id}')
   @response(200, responseSchema.delete)
