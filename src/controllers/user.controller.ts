@@ -258,6 +258,7 @@ export class UserController {
       }
 
       await this.userRepository.deleteById(id);
+      await this.userRepository.review(id).delete();
 
       return {
         success: true,
