@@ -1,6 +1,6 @@
-projectKey=movie-service
+projectKey=movie-service-1
 serverUrl=http://localhost:9000
 serverVersion=8.9.10.61524
-dashboardUrl=http://localhost:9000/dashboard?id=movie-service
-ceTaskId=AYRu9DGBA11LSM4uuVOO
-ceTaskUrl=http://localhost:9000/api/ce/task?id=AYRu9DGBA11LSM4uuVOO
+dashboardUrl=http://localhost:9000/dashboard?id=movie-service-1
+ceTaskId=AYR0w_FrA11LSM4uuVOn
+ceTaskUrl=http://localhost:9000/api/ce/task?id=AYR0w_FrA11LSM4uuVOn

@@ -1,4 +1,4 @@
-import {Client, expect, givenHttpServerConfig, toJSON} from '@loopback/testlab';
+import {Client, expect, givenHttpServerConfig} from '@loopback/testlab';
 import * as _ from 'lodash';
 import {StreamingServiceApplication} from '../application';
 import {ActorDetails, Movie, Review, User} from '../models';
@@ -94,28 +94,7 @@ export async function givenEmptyDatabase() {
 
 export async function createAdmin(client: Client, userRepo: UserRepository) {
   const userData = givenRootAdmin();
-  const response = await client
-    .post(`/users/register`)
-    .send(userData)
-    .expect(200);
-
-  userData.permissions = ['root', 'admin'];
-  userData.approved = true;
-  userData.id = '1';
-  const data = _.omit(userData, 'password');
-  const expected = {
-    success: true,
-    message: 'Successfully registered',
-    data,
-  };
-  expect(response.body).to.containEql(expected);
-  const created = await userRepo.findById(response.body.data.id, {
-    fields: {password: false},
-  });
-
-  expect(toJSON(created)).to.deepEqual({
-    ...expected.data,
-  });
+  return client.post(`/users/register`).send(userData).expect(200);
 }
 
 export async function login(client: Client, userType: string) {
@@ -189,6 +168,16 @@ export async function createActor(client: Client, adminToken: string) {
 
 export async function createUser(client: Client) {
   const userData = givenUser();
+  const response = await client
+    .post(`/users/register`)
+    .send(userData)
+    .expect(200);
+
+  return response.body.data.id;
+}
+
+export async function createCustomUser(client: Client, email: string) {
+  const userData = givenUser({email});
   const response = await client
     .post(`/users/register`)
     .send(userData)
