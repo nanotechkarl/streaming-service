@@ -224,6 +224,11 @@ export class UserController {
     @requestBody(requestBodySchema.updateUser) user: User,
   ) {
     try {
+      const found = await this.userRepository.findById(id);
+      if (found.permissions.includes('root')) {
+        throw new Error('Root admin cannot be edited');
+      }
+
       await this.userRepository.updateById(id, user);
       const name = user.firstName + ' ' + user.lastName;
       await this.reviewRepository.updateAll({name}, {userId: id});
