@@ -40,6 +40,8 @@ export class ActorController {
       const foundActor = await this.actorDetailsRepository.find({
         where: {id: actor.actorDetailsId},
       });
+      if (!actor.movieId) throw new Error('Movie Id should be available');
+      if (!actor.actorDetailsId) throw new Error('ActorId should be available');
       if (!foundMovie.length) throw new Error('No id matched the movies');
       if (!foundActor.length) throw new Error('No id matched the actor');
 
