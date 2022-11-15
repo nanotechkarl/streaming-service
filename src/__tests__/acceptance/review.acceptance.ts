@@ -19,6 +19,7 @@ describe('ReviewController', () => {
   let adminToken = '';
   let token = '';
   let userId = '';
+  let movieId = '';
 
   before(async () => {
     app = await givenRunningApplicationWithCustomConfiguration();
@@ -38,7 +39,7 @@ describe('ReviewController', () => {
       userId = await createUser(client);
       await approveUser(client, adminToken, userId);
       token = await login(client, 'user');
-      await createMovie(client, adminToken);
+      movieId = await createMovie(client, adminToken);
     });
 
     it('Should add a review to a movie', async () => {
@@ -54,8 +55,11 @@ describe('ReviewController', () => {
       );
     });
 
-    it('Should edit a review of a movie', async () => {
-      const reviewData = givenReview({message: 'hi', rating: 4});
+    it('Should edit a review of a movie if existing', async () => {
+      const reviewData = givenReview({
+        message: 'hi',
+        rating: 4,
+      });
       const response = await client
         .put(`/reviews`)
         .set({Authorization: `Bearer ${token}`})
@@ -71,13 +75,26 @@ describe('ReviewController', () => {
       expect(findEdited.rating).equal(4);
     });
 
-    it('Should get pending reviews', async () => {
+    it('Should get pending reviews as admin', async () => {
       const response = await client
         .get(`/reviews/pending`)
         .set({Authorization: `Bearer ${adminToken}`})
         .expect(200);
 
       expect(response.body.data.length).to.greaterThan(0);
+    });
+
+    it('Should approve a review of a movie as admin', async () => {
+      const reviewData = {
+        approved: true,
+      };
+      const response = await client
+        .patch(`/reviews/${movieId}`)
+        .set({Authorization: `Bearer ${adminToken}`})
+        .send(reviewData)
+        .expect(200);
+
+      expect(response.body.message).to.containEql('Succesfully updated review');
     });
 
     it('Should get reviews of a userId', async () => {
@@ -87,6 +104,26 @@ describe('ReviewController', () => {
         .expect(200);
 
       expect(response.body.data.length).to.greaterThan(0);
+    });
+
+    it('Should get reviews of a movie(Approved)', async () => {
+      const response = await client
+        .get(`/reviews/movie/${movieId}`)
+        .set({Authorization: `Bearer ${adminToken}`})
+        .expect(200);
+
+      expect(response.body.data.length).to.be.greaterThan(0);
+    });
+
+    it('Should delete review', async () => {
+      const response = await client
+        .delete(`/reviews/1`)
+        .set({Authorization: `Bearer ${token}`})
+        .expect(200);
+
+      expect(response.body.message).to.containEql('Succesfully deleted review');
+      const findDeleted = await reviewRepo.find({where: {id: '1'}});
+      expect(findDeleted.length).to.be.equal(0);
     });
   });
 

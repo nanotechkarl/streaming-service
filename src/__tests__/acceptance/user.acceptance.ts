@@ -182,7 +182,7 @@ describe('UserController', () => {
       expect(response.body.message).to.be.equal('User already exist');
     });
 
-    it('Should have no access to get all users', async () => {
+    it('Should have no access to admin user endpoints', async () => {
       const id = '1';
       await client.get(`/users`).expect(401);
       await client.get(`/users/${id}`).expect(401);
