@@ -30,7 +30,6 @@ describe('UserController', () => {
   context('As admin', () => {
     it('Should creates root admin on first signup', async () => {
       const userData = givenRootAdmin();
-
       const response = await createAdmin(client, userRepo);
 
       userData.permissions = ['root', 'admin'];
@@ -103,6 +102,41 @@ describe('UserController', () => {
       };
       expect(response.body.message).to.equal(expected.message);
     });
+
+    it('Should approve an existing user', async () => {
+      const id = '2';
+      const userData = {
+        approved: true,
+      };
+
+      const response = await client
+        .patch(`/users/approval/${id}`)
+        .set({Authorization: `Bearer ${adminToken}`})
+        .send(userData)
+        .expect(200);
+      const expected = {
+        message: 'Succesfully approved account',
+      };
+      expect(response.body.message).to.equal(expected.message);
+
+      const find = await userRepo.findById('2');
+      expect(find.approved).to.be.true();
+    });
+
+    it('Should delete an existing user', async () => {
+      const id = '2';
+      const response = await client
+        .delete(`/users/${id}`)
+        .set({Authorization: `Bearer ${adminToken}`})
+        .expect(200);
+      const expected = {
+        message: 'Successfully deleted user',
+      };
+      expect(response.body.message).to.equal(expected.message);
+
+      const findDeleted = await userRepo.find({where: {id: '2'}});
+      expect(findDeleted).to.be.empty();
+    });
   });
 
   context('As User', () => {
@@ -149,7 +183,12 @@ describe('UserController', () => {
     });
 
     it('Should have no access to get all users', async () => {
+      const id = '1';
       await client.get(`/users`).expect(401);
+      await client.get(`/users/${id}`).expect(401);
+      await client.patch(`/users/approval/${id}`).expect(401);
+      await client.delete(`/users/${id}`).expect(401);
+      await client.patch(`/users/${id}`).expect(401);
     });
   });
 
