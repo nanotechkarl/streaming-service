@@ -14,6 +14,7 @@ describe('ActorDetailsController', () => {
   let userRepo: UserRepository;
   let actorDetailsRepo: ActorDetailsRepository;
   let adminToken = '';
+  let actorId = '';
 
   before(async () => {
     app = await givenRunningApplicationWithCustomConfiguration();
@@ -46,7 +47,7 @@ describe('ActorDetailsController', () => {
         ...actorData,
       };
       expect(response.body.data).to.containEql(expected);
-
+      actorId = response.body.data.id;
       const created = await actorDetailsRepo.findById(response.body.data.id);
       expect(toJSON(created)).to.deepEqual({
         ...expected,
@@ -106,6 +107,28 @@ describe('ActorDetailsController', () => {
       const response = await client.get('/actor-details').expect(200);
       const count = response.body.data.length;
       expect(count).to.equal(2);
+    });
+
+    it('Should get Actor by id', async () => {
+      const response = await client
+        .get(`/actor-details/${actorId}`)
+        .expect(200);
+      const data = response.body.data;
+      expect(data).to.be.not.null();
+      expect(data.id).to.be.equal('1');
+      expect(data.firstName).to.be.not.null();
+      expect(data.lastName).to.be.not.null();
+    });
+  });
+
+  context('As Admin (delete)', () => {
+    it('Should not delete actor if actor is still casted', async () => {
+      const response = await client
+        .delete(`/actor-details/${actorId}`)
+        .set({Authorization: `Bearer ${adminToken}`})
+        .expect(200);
+      const data = response.body.data;
+      expect(data.message).to.be.equal('Actor has a movie');
     });
   });
 
