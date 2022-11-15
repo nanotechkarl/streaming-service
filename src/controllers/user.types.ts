@@ -257,6 +257,19 @@ export const responseSchema = {
                 token: {
                   type: 'string',
                 },
+                id: {
+                  type: 'string',
+                },
+                email: {
+                  type: 'string',
+                },
+                name: {
+                  type: 'string',
+                },
+                permissions: {
+                  type: Array,
+                  items: ['string'],
+                },
               },
             },
             message: {
