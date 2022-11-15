@@ -121,17 +121,6 @@ describe('ActorDetailsController', () => {
     });
   });
 
-  context('As Admin (delete)', () => {
-    it('Should not delete actor if actor is still casted', async () => {
-      const response = await client
-        .delete(`/actor-details/${actorId}`)
-        .set({Authorization: `Bearer ${adminToken}`})
-        .expect(200);
-      const data = response.body.data;
-      expect(data.message).to.be.equal('Actor has a movie');
-    });
-  });
-
   async function givenActorDetailsRepository() {
     actorDetailsRepo = await app.getRepository(ActorDetailsRepository);
   }
