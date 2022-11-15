@@ -115,6 +115,15 @@ describe('ReviewController', () => {
       expect(response.body.data.length).to.be.greaterThan(0);
     });
 
+    it('Should get review by owner', async () => {
+      const response = await client
+        .get(`/reviews/${movieId}/myReview`)
+        .set({Authorization: `Bearer ${token}`})
+        .expect(200);
+
+      expect(response.body.data).to.be.not.null();
+    });
+
     it('Should delete review', async () => {
       const response = await client
         .delete(`/reviews/1`)

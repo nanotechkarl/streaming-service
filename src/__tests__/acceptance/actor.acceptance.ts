@@ -29,14 +29,14 @@ describe('ActorController', () => {
     client = createRestAppClient(app);
   });
 
-  context('As Admin', () => {
-    before(async () => {
-      await createAdmin(client, userRepo);
-      adminToken = await login(client, 'admin');
-      movieId = await createMovie(client, adminToken);
-      actorDetailsId = await createActor(client, adminToken);
-    });
+  before(async () => {
+    await createAdmin(client, userRepo);
+    adminToken = await login(client, 'admin');
+    movieId = await createMovie(client, adminToken);
+    actorDetailsId = await createActor(client, adminToken);
+  });
 
+  context('As Admin', () => {
     it('Should add an actor to a movie', async () => {
       const actorData = {
         actorDetailsId,
@@ -86,6 +86,34 @@ describe('ActorController', () => {
       const response = await client.get(`/actors/${movieId}`).expect(200);
       const count = response.body.data.length;
       expect(count).to.greaterThan(0);
+    });
+
+    it('Should get all movies of actor', async () => {
+      const response = await client
+        .get(`/actor/movies/${actorDetailsId}`)
+        .expect(200);
+      const count = response.body.data.length;
+      expect(count).to.greaterThan(0);
+    });
+  });
+
+  context('As admin (delete)', () => {
+    it('Should delete actor from movie', async () => {
+      const actorData = {
+        actorDetailsId,
+        movieId,
+      };
+      const response = await client
+        .del(`/actors/${actorDetailsId}`)
+        .set({Authorization: `Bearer ${adminToken}`})
+        .send(actorData)
+        .expect(200);
+
+      const expected = {
+        message: 'Succesfully deleted actor in the movie',
+      };
+
+      expect(response.body.message).to.containEql(expected.message);
     });
   });
 
