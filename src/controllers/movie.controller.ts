@@ -266,4 +266,42 @@ export class MovieController {
     }
   }
   /* #endregion */
+
+  /* #region  - Get Movies with offset limit */
+  @get('/movies/page/{page}/limit/{limit}')
+  @response(200, responseSchema.getAll)
+  async query(
+    @param.path.string('page') page: string,
+    @param.path.string('limit') limit: number,
+  ) {
+    try {
+      //eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const movies: {[key: string]: any} = await this.movieRepository.find({
+        include: ['actors'],
+        skip: (parseInt(page) - 1) * limit,
+        limit,
+        order: ['yearRelease DESC'],
+      });
+
+      const {count} = await this.movieRepository.count();
+      const settings = {
+        count,
+        page: parseInt(page),
+      };
+
+      return {
+        success: true,
+        settings,
+        data: movies,
+        message: 'Succesfully fetched movies',
+      };
+    } catch (error) {
+      return {
+        success: false,
+        data: null,
+        message: error.message,
+      };
+    }
+  }
+  /* #endregion */
 }
